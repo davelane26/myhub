@@ -535,6 +535,7 @@ async function prefetchBibleText() {
   } catch(e) { /* silent */ }
 }
 
+let bibleKeepAlive = null;
 function listenBible() {
   if (!('speechSynthesis' in window)) { alert('Text-to-speech is not supported in this browser.'); return; }
   if (speechSynthesis.speaking || speechSynthesis.pending) { stopBible(); return; }
@@ -542,9 +543,16 @@ function listenBible() {
   const u = new SpeechSynthesisUtterance(text);
   u.rate = bibleRate;
   u.lang = 'en-US';
-  u.onend = () => setBiblePlayerState('idle');
-  u.onerror = e => { alert('Audio error: ' + e.error); setBiblePlayerState('idle'); };
+  u.onend = () => { clearInterval(bibleKeepAlive); setBiblePlayerState('idle'); };
+  u.onerror = e => { clearInterval(bibleKeepAlive); alert('Audio error: ' + e.error); setBiblePlayerState('idle'); };
   speechSynthesis.speak(u);
+  // Chrome Android fix: resume immediately and keep alive every 10s
+  speechSynthesis.resume();
+  bibleKeepAlive = setInterval(() => {
+    if (!speechSynthesis.speaking) { clearInterval(bibleKeepAlive); return; }
+    speechSynthesis.pause();
+    speechSynthesis.resume();
+  }, 10000);
   setBiblePlayerState('playing');
 }
 
@@ -572,7 +580,7 @@ function pauseBible() {
   else { speechSynthesis.pause(); document.getElementById('bPauseBtn').innerHTML = '<i class="ti ti-player-play"></i> Resume'; }
 }
 
-function stopBible() { speechSynthesis.cancel(); setBiblePlayerState('idle'); }
+function stopBible() { clearInterval(bibleKeepAlive); speechSynthesis.cancel(); setBiblePlayerState('idle'); }
 
 function setBibleRate(rate) {
   bibleRate = rate;
