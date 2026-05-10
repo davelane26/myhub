@@ -534,15 +534,17 @@ async function loadVideo() {
   const cached = await store.get(key);
   if (cached) { renderVideo(JSON.parse(cached)); return; }
   try {
-    const chanUrl = `https://www.youtube.com/@${CHANNEL_HANDLE}/videos`;
-    const res = await fetch(`https://corsproxy.io/?${encodeURIComponent(chanUrl)}`);
+    const res = await fetch(`https://r.jina.ai/https://www.youtube.com/@${CHANNEL_HANDLE}/videos`);
     if (!res.ok) throw new Error(`HTTP ${res.status}`);
-    const html = await res.text();
-    const ids = [...new Set([...html.matchAll(/"videoId":"([A-Za-z0-9_-]{11})"/g)].map(m => m[1]))];
-    if (!ids.length) throw new Error('No video IDs found on channel page');
-    const videoId = ids[0];
-    const oe = await fetch(`https://www.youtube.com/oembed?url=${encodeURIComponent('https://www.youtube.com/watch?v=' + videoId)}&format=json`).then(r => r.json());
-    const video = {videoId, title: oe.title, published: 'Latest'};
+    const text = await res.text();
+    const idMatch = text.match(/youtube\.com\/watch\?v=([A-Za-z0-9_-]{11})/);
+    if (!idMatch) throw new Error('No video found in channel page');
+    const videoId = idMatch[1];
+    const lines = text.split('\n');
+    const line = lines.find(l => l.includes(videoId)) || '';
+    const titleMatch = line.match(/\[([^\]]+)\]/);
+    const title = titleMatch?.[1] || 'Latest devotion';
+    const video = {videoId, title, published: 'Latest'};
     store.set(key, JSON.stringify(video));
     renderVideo(video);
   } catch(e) {
