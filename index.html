@@ -580,14 +580,6 @@ function renderVideo(v) {
 loadVideo();
 
 // ---- WORD FOR THE WEEK ----
-function getAnthropicKey() { return localStorage.getItem('anthropic_key') || ''; }
-function setAnthropicKey(k) { localStorage.setItem('anthropic_key', k); }
-function promptForKey() {
-  const k = prompt('Enter your Anthropic API key (sk-ant-...):\nIt will be saved on this device only, never uploaded anywhere.');
-  if (k && k.startsWith('sk-ant-')) { setAnthropicKey(k.trim()); loadWordForWeek(); }
-  else if (k) { alert('That doesn\'t look like a valid Anthropic key. It should start with sk-ant-'); }
-}
-
 function wftwCacheKey() {
   const d = new Date();
   const mon = new Date(d);
@@ -601,37 +593,24 @@ async function loadWordForWeek() {
   const cacheKey = wftwCacheKey();
   const cached = await store.get(cacheKey);
   if (cached) { renderWordForWeek(JSON.parse(cached)); return; }
-  const ANTHROPIC_KEY = getAnthropicKey();
-  if (!ANTHROPIC_KEY) {
-    document.getElementById('wftwBody').innerHTML = '<div class="state-msg"><i class="ti ti-key"></i>API key needed<br><small>Tap below to enter your Anthropic key once.</small></div><button class="pill-action" style="margin-top:8px" onclick="promptForKey()"><i class="ti ti-key"></i> Enter API key</button>';
-    document.getElementById('wftwBadge').textContent = 'Setup';
-    return;
-  }
   try {
-    const res = await fetch('https://api.anthropic.com/v1/messages', {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-        'x-api-key': ANTHROPIC_KEY,
-        'anthropic-version': '2023-06-01',
-        'anthropic-dangerous-direct-browser-access': 'true'
-      },
-      body: JSON.stringify({
-        model: 'claude-sonnet-4-6',
-        max_tokens: 1024,
-        tools: [{"type": "web_search_20260209", "name": "web_search"}],
-        system: 'Fetch the latest "Word for the Week" article from https://cfcindia.com/word-for-the-week. Return ONLY a JSON object on a single line: {"title":"<article title>","date":"<friendly date e.g. May 5, 2026>","excerpt":"<2-3 sentence excerpt from the article body>","url":"<direct article URL>"}. No markdown, no explanation.',
-        messages: [{role: 'user', content: 'Latest Word for the Week article from cfcindia.com'}]
-      })
-    });
-    const data = await res.json();
-    if (data.error) throw new Error(data.error.message || JSON.stringify(data.error));
-    const texts = (data.content || []).filter(b => b.type === 'text').map(b => b.text);
-    let article = null;
-    for (const t of [...texts].reverse()) {
-      try { const j = JSON.parse(t.replace(/```json|```/g,'').trim()); if (j.title) { article = j; break; } } catch {}
-    }
-    if (!article) throw new Error('No valid JSON in response. Raw: ' + texts.join(' | ').slice(0, 200));
+    const pageUrl = 'https://cfcindia.com/word-for-the-week';
+    const res = await fetch(`https://corsproxy.io/?${encodeURIComponent(pageUrl)}`);
+    if (!res.ok) throw new Error(`HTTP ${res.status}`);
+    const doc = new DOMParser().parseFromString(await res.text(), 'text/html');
+    const link = doc.querySelector('a[href*="/wftw/"]');
+    if (!link) throw new Error('No article link found');
+    const title = link.textContent.trim();
+    const slug = link.getAttribute('href');
+    const url = slug.startsWith('http') ? slug : 'https://cfcindia.com' + slug;
+    const container = link.closest('article, .post, .entry, li, div') || link.parentElement;
+    const dateEl = container.querySelector('time, .date, [class*="date"]')
+                || [...container.querySelectorAll('*')].find(el => /\d{1,2}\s+\w+\s+\d{4}/.test(el.textContent.trim()) && el.children.length === 0);
+    const date = dateEl?.textContent.trim() || '';
+    const pEls = container.querySelectorAll('p');
+    const excerpt = [...pEls].map(p => p.textContent.trim()).filter(t => t.length > 30).join(' ').slice(0, 280) || '';
+    if (!title) throw new Error('Could not parse article title');
+    const article = {title, date, excerpt, url};
     store.set(cacheKey, JSON.stringify(article));
     renderWordForWeek(article);
   } catch(e) {
