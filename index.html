@@ -580,7 +580,13 @@ function renderVideo(v) {
 loadVideo();
 
 // ---- WORD FOR THE WEEK ----
-const ANTHROPIC_KEY = 'sk-ant-...'; // paste your Anthropic API key here
+function getAnthropicKey() { return localStorage.getItem('anthropic_key') || ''; }
+function setAnthropicKey(k) { localStorage.setItem('anthropic_key', k); }
+function promptForKey() {
+  const k = prompt('Enter your Anthropic API key (sk-ant-...):\nIt will be saved on this device only, never uploaded anywhere.');
+  if (k && k.startsWith('sk-ant-')) { setAnthropicKey(k.trim()); loadWordForWeek(); }
+  else if (k) { alert('That doesn\'t look like a valid Anthropic key. It should start with sk-ant-'); }
+}
 
 function wftwCacheKey() {
   const d = new Date();
@@ -595,9 +601,10 @@ async function loadWordForWeek() {
   const cacheKey = wftwCacheKey();
   const cached = await store.get(cacheKey);
   if (cached) { renderWordForWeek(JSON.parse(cached)); return; }
+  const ANTHROPIC_KEY = getAnthropicKey();
   if (!ANTHROPIC_KEY) {
-    document.getElementById('wftwBody').innerHTML = '<div class="state-msg err-msg"><i class="ti ti-alert-circle"></i>Add your Anthropic API key to index.html to enable this panel.</div>';
-    document.getElementById('wftwBadge').textContent = 'Setup needed';
+    document.getElementById('wftwBody').innerHTML = '<div class="state-msg"><i class="ti ti-key"></i>API key needed<br><small>Tap below to enter your Anthropic key once.</small></div><button class="pill-action" style="margin-top:8px" onclick="promptForKey()"><i class="ti ti-key"></i> Enter API key</button>';
+    document.getElementById('wftwBadge').textContent = 'Setup';
     return;
   }
   try {
