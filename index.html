@@ -505,6 +505,7 @@ function renderBible() {
   document.getElementById('bFill').style.width = pct+'%';
   renderStreak('bStreak','#2d7a4f');
   store.set('bible_days', JSON.stringify(bDays));
+  bibleText = ''; prefetchBibleText();
 }
 function changeDay(d) { bDays=[bDays[0]+d,bDays[1]+d]; renderBible(); }
 function markBibleRead() { bDays=[bDays[0]+2,bDays[1]+2]; renderBible(); }
@@ -514,16 +515,14 @@ function reflectBible() { alert('Open Claude and ask: "Reflect on '+document.get
 // ---- BIBLE TTS ----
 let bibleText = '', bibleCharIndex = 0, bibleRate = 2.0;
 
-async function listenBible() {
-  if (speechSynthesis.speaking || speechSynthesis.pending) { stopBible(); return; }
-  setBiblePlayerState('loading');
+async function prefetchBibleText() {
   try {
     const url = `https://biblestudytogether.com/chronological-cross-reference-bible-reading-plan/day-${String(bDays[0]).padStart(3,'0')}/`;
     const res = await fetch(`https://corsproxy.io/?${encodeURIComponent(url)}`);
-    if (!res.ok) throw new Error(`HTTP ${res.status}`);
+    if (!res.ok) return;
     const doc = new DOMParser().parseFromString(await res.text(), 'text/html');
     const el = doc.querySelector('.entry-content, .et_pb_text_inner, article, main');
-    if (!el) throw new Error('Content area not found');
+    if (!el) return;
     const stopPhrases = ['study journal','together challenge','subscribe','copyright','©','print version'];
     let stop = false;
     const lines = [...el.querySelectorAll('h2,h3,p')].filter(e => {
@@ -533,14 +532,22 @@ async function listenBible() {
       return !stop;
     }).map(e => e.textContent.trim());
     bibleText = lines.join(' ').replace(/\s+/g,' ').trim();
-    if (!bibleText) throw new Error('No text found');
-    bibleCharIndex = 0;
-    speakBible(0);
-  } catch(e) {
-    console.error(e);
-    setBiblePlayerState('error');
-    setTimeout(() => setBiblePlayerState('idle'), 2500);
+  } catch(e) { /* silent */ }
+}
+
+function listenBible() {
+  if (!('speechSynthesis' in window)) { alert('Text-to-speech is not supported in this browser.'); return; }
+  if (speechSynthesis.speaking || speechSynthesis.pending) { stopBible(); return; }
+  if (!bibleText) {
+    setBiblePlayerState('loading');
+    prefetchBibleText().then(() => {
+      if (bibleText) { bibleCharIndex = 0; speakBible(0); }
+      else { setBiblePlayerState('error'); setTimeout(() => setBiblePlayerState('idle'), 2500); }
+    });
+    return;
   }
+  bibleCharIndex = 0;
+  speakBible(0);
 }
 
 function getBestVoice() {
