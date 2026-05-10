@@ -526,7 +526,7 @@ function reflectChapter() { alert('Open Claude and ask: "Reflect on chapter '+cu
 store.get('book_chapter').then(v => { if(v) curCh=parseInt(v)||1; renderBook(); });
 
 // ---- YOUTUBE ----
-const CHANNEL_ID = 'UC-GjQuCwrr41RXCroJl34KA';
+const CHANNEL_HANDLE = 'cfcdailydevotions-zacpoone6432';
 async function loadVideo() {
   document.getElementById('ytBody').innerHTML = '<div class="state-msg"><i class="ti ti-loader"></i>Fetching today\'s video...</div>';
   document.getElementById('ytBadge').textContent = 'Loading';
@@ -534,26 +534,22 @@ async function loadVideo() {
   const cached = await store.get(key);
   if (cached) { renderVideo(JSON.parse(cached)); return; }
   try {
-    const feedUrl = `https://www.youtube.com/feeds/videos.xml?channel_id=${CHANNEL_ID}`;
-    const res = await fetch(`https://corsproxy.io/?${encodeURIComponent(feedUrl)}`);
+    const chanUrl = `https://www.youtube.com/@${CHANNEL_HANDLE}/videos`;
+    const res = await fetch(`https://corsproxy.io/?${encodeURIComponent(chanUrl)}`);
     if (!res.ok) throw new Error(`HTTP ${res.status}`);
-    const xml = new DOMParser().parseFromString(await res.text(), 'text/xml');
-    const entry = xml.querySelector('entry');
-    if (!entry) throw new Error('No videos in feed');
-    const videoId = entry.querySelector('link')?.getAttribute('href')?.split('v=')[1]?.split('&')[0]
-                 || xml.getElementsByTagNameNS('http://www.youtube.com/xml/schemas/2015','videoId')[0]?.textContent;
-    const title = entry.querySelector('title')?.textContent;
-    if (!videoId || !title) throw new Error('Could not parse feed entries');
-    const published = new Date(entry.querySelector('published')?.textContent)
-      .toLocaleDateString('en-US', {month:'short', day:'numeric', year:'numeric'});
-    const video = {videoId, title, published};
+    const html = await res.text();
+    const ids = [...new Set([...html.matchAll(/"videoId":"([A-Za-z0-9_-]{11})"/g)].map(m => m[1]))];
+    if (!ids.length) throw new Error('No video IDs found on channel page');
+    const videoId = ids[0];
+    const oe = await fetch(`https://www.youtube.com/oembed?url=${encodeURIComponent('https://www.youtube.com/watch?v=' + videoId)}&format=json`).then(r => r.json());
+    const video = {videoId, title: oe.title, published: 'Latest'};
     store.set(key, JSON.stringify(video));
     renderVideo(video);
   } catch(e) {
     console.error('YouTube load error:', e);
     document.getElementById('ytBody').innerHTML = `
       <div class="state-msg err-msg"><i class="ti ti-alert-circle"></i>Couldn't load video<br><small>${e.message}</small></div>
-      <button class="pill-action" onclick="window.open('https://www.youtube.com/channel/${CHANNEL_ID}','_blank')">
+      <button class="pill-action" onclick="window.open('https://www.youtube.com/@${CHANNEL_HANDLE}','_blank')">
         <i class="ti ti-brand-youtube"></i> Open channel directly
       </button>
       <button class="pill-action" onclick="loadVideo()" style="margin-top:6px">
