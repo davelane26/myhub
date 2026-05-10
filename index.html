@@ -332,15 +332,15 @@ body {
     </div>
   </div>
 
-  <!-- EMAIL PANEL -->
+  <!-- WORD FOR THE WEEK PANEL -->
   <div class="card">
     <div class="card-head">
-      <i class="ti ti-mail" style="color:var(--blue)"></i>
+      <i class="ti ti-book-open" style="color:var(--blue)"></i>
       <span class="card-head-title">Word for the Week</span>
-      <span class="badge" style="background:var(--blue-light);color:var(--blue)" id="emailBadge">Loading</span>
+      <span class="badge" style="background:var(--blue-light);color:var(--blue)" id="wftwBadge">Loading</span>
     </div>
-    <div class="card-body" id="emailBody">
-      <div class="state-msg"><i class="ti ti-loader"></i>Fetching emails...</div>
+    <div class="card-body" id="wftwBody">
+      <div class="state-msg"><i class="ti ti-loader"></i>Fetching this week's article...</div>
     </div>
   </div>
 
@@ -575,39 +575,74 @@ function renderVideo(v) {
 }
 loadVideo();
 
-// ---- EMAIL ----
-async function loadEmails() {
+// ---- WORD FOR THE WEEK ----
+const ANTHROPIC_KEY = ''; // paste your Anthropic API key here
+
+function wftwCacheKey() {
+  const d = new Date();
+  const mon = new Date(d);
+  mon.setDate(d.getDate() - (d.getDay() || 7) + 1);
+  return 'wftw_' + mon.toISOString().split('T')[0];
+}
+
+async function loadWordForWeek() {
+  document.getElementById('wftwBadge').textContent = 'Loading';
+  document.getElementById('wftwBody').innerHTML = '<div class="state-msg"><i class="ti ti-loader"></i>Fetching this week\'s article...</div>';
+  const cacheKey = wftwCacheKey();
+  const cached = await store.get(cacheKey);
+  if (cached) { renderWordForWeek(JSON.parse(cached)); return; }
+  if (!ANTHROPIC_KEY) {
+    document.getElementById('wftwBody').innerHTML = '<div class="state-msg err-msg"><i class="ti ti-alert-circle"></i>Add your Anthropic API key to index.html to enable this panel.</div>';
+    document.getElementById('wftwBadge').textContent = 'Setup needed';
+    return;
+  }
   try {
     const res = await fetch('https://api.anthropic.com/v1/messages', {
-      method:'POST', headers:{'Content-Type':'application/json'},
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        'x-api-key': ANTHROPIC_KEY,
+        'anthropic-version': '2023-06-01',
+        'anthropic-dangerous-direct-browser-access': 'true'
+      },
       body: JSON.stringify({
-        model:'claude-sonnet-4-20250514', max_tokens:800,
-        system:'Search Gmail for the most recent email from cfc@cfcindia.com with subject containing "Word for the Week". Return ONLY JSON: {"subject":"<subject>","time":"<friendly date>","snippet":"<2-sentence summary of the email body>","unread":<true|false>}. If not found: {"error":"not found"}.',
-        messages:[{role:'user',content:'Find the most recent "Word for the Week" email from cfc@cfcindia.com'}],
-        mcp_servers:[{type:'url',url:'https://gmailmcp.googleapis.com/mcp/v1',name:'gmail-mcp'}]
+        model: 'claude-sonnet-4-6',
+        max_tokens: 1024,
+        tools: [{"type": "web_search_20250305", "name": "web_search"}],
+        system: 'Fetch the latest "Word for the Week" article from https://cfcindia.com/word-for-the-week. Return ONLY JSON: {"title":"<article title>","date":"<friendly date e.g. May 5, 2026>","excerpt":"<2-3 sentence excerpt from the article body>","url":"<direct article URL>"}. If not found: {"error":"not found"}.',
+        messages: [{role: 'user', content: 'Latest Word for the Week article from cfcindia.com'}]
       })
     });
     const data = await res.json();
-    const text = data.content.filter(b=>b.type==='text').map(b=>b.text).join('');
-    const email = JSON.parse(text.replace(/```json|```/g,'').trim());
-    if (email.error || !email.subject) throw new Error();
-    document.getElementById('emailBadge').textContent = email.unread ? 'Unread' : 'Read';
-    const body = document.getElementById('emailBody');
-    body.innerHTML = `
-      <div class="email-item" style="border-bottom:none;padding-bottom:0">
-        <div class="email-row">
-          <div class="email-from">${email.unread ? '<span class="email-unread-dot"></span>' : ''}<span>CFC India</span></div>
-          <span class="email-time">${email.time}</span>
-        </div>
-        <div class="email-subject" style="white-space:normal;margin-bottom:6px">${email.subject}</div>
-        <div class="card-verse">${email.snippet}</div>
-      </div>`;
+    const text = data.content.filter(b => b.type === 'text').map(b => b.text).join('');
+    const article = JSON.parse(text.replace(/```json|```/g, '').trim());
+    if (article.error || !article.title) throw new Error();
+    store.set(cacheKey, JSON.stringify(article));
+    renderWordForWeek(article);
   } catch(e) {
-    document.getElementById('emailBody').innerHTML = '<div class="state-msg err-msg"><i class="ti ti-alert-circle"></i>Couldn\'t load Word for the Week.<br><small>Make sure Gmail is connected in Claude settings.</small></div>';
-    document.getElementById('emailBadge').textContent = 'Error';
+    document.getElementById('wftwBody').innerHTML = `
+      <div class="state-msg err-msg"><i class="ti ti-alert-circle"></i>Couldn't load article</div>
+      <button class="pill-action" onclick="window.open('https://cfcindia.com/word-for-the-week','_blank')">
+        <i class="ti ti-external-link"></i> Open on cfcindia.com
+      </button>
+      <button class="pill-action" onclick="loadWordForWeek()" style="margin-top:6px">
+        <i class="ti ti-refresh"></i> Try again
+      </button>`;
+    document.getElementById('wftwBadge').textContent = 'Error';
   }
 }
-loadEmails();
+
+function renderWordForWeek(a) {
+  document.getElementById('wftwBadge').textContent = 'This week';
+  document.getElementById('wftwBody').innerHTML = `
+    <div class="card-meta">${a.date} · CFC India</div>
+    <div class="card-title" style="font-size:14px;font-weight:600;line-height:1.4">${a.title}</div>
+    <div class="card-verse">${a.excerpt}</div>
+    <button class="pill-action" onclick="window.open('${a.url}','_blank')">
+      <i class="ti ti-external-link"></i> Read full article
+    </button>`;
+}
+loadWordForWeek();
 
 // ---- ACTIONS ----
 function briefing() { alert('Open Claude and say:\n"Give me a daily briefing across my devotion video, emails, Bible reading ('+document.getElementById('bRef').textContent+'), and book chapter ('+document.getElementById('chapterTitle').textContent+')"'); }
