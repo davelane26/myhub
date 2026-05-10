@@ -563,12 +563,12 @@ async function prefetchBibleText() {
 }
 
 function speakChunk(idx) {
-  if (idx >= bibleChunks.length) { clearInterval(bibleKeepAlive); setBiblePlayerState('idle'); return; }
+  if (idx >= bibleChunks.length) { setBiblePlayerState('idle'); return; }
   bibleChunkIdx = idx;
   const u = new SpeechSynthesisUtterance(bibleChunks[idx]);
   u.rate = bibleRate; u.lang = 'en-US';
-  u.onend = () => speakChunk(idx + 1);
-  u.onerror = e => { if (e.error !== 'interrupted') { clearInterval(bibleKeepAlive); setBiblePlayerState('idle'); } };
+  u.onend = () => setTimeout(() => speakChunk(idx + 1), 100);
+  u.onerror = e => { if (e.error !== 'interrupted') setBiblePlayerState('idle'); };
   speechSynthesis.speak(u);
   speechSynthesis.resume();
 }
@@ -577,13 +577,8 @@ function listenBible() {
   if (!('speechSynthesis' in window)) { alert('Text-to-speech is not supported in this browser.'); return; }
   if (speechSynthesis.speaking || speechSynthesis.pending) { stopBible(); return; }
   const text = bibleText || document.getElementById('bRef').textContent;
-  bibleChunks = chunkText(text, 2000);
+  bibleChunks = chunkText(text, 400);
   bibleChunkIdx = 0;
-  clearInterval(bibleKeepAlive);
-  bibleKeepAlive = setInterval(() => {
-    if (!speechSynthesis.speaking) return;
-    speechSynthesis.pause(); speechSynthesis.resume();
-  }, 10000);
   speakChunk(0);
   setBiblePlayerState('playing');
 }
@@ -593,7 +588,7 @@ function pauseBible() {
   else { speechSynthesis.pause(); document.getElementById('bPauseBtn').innerHTML = '<i class="ti ti-player-play"></i> Resume'; }
 }
 
-function stopBible() { clearInterval(bibleKeepAlive); speechSynthesis.cancel(); setBiblePlayerState('idle'); }
+function stopBible() { speechSynthesis.cancel(); setBiblePlayerState('idle'); }
 
 function setBibleRate(rate) {
   bibleRate = rate;
@@ -601,7 +596,7 @@ function setBibleRate(rate) {
   document.getElementById('bRate' + String(rate).replace('.',''))?.classList.add('primary');
   if (speechSynthesis.speaking || speechSynthesis.pending) {
     speechSynthesis.cancel();
-    bibleChunks = chunkText(bibleText || document.getElementById('bRef').textContent, 2000);
+    bibleChunks = chunkText(bibleText || document.getElementById('bRef').textContent, 400);
     speakChunk(bibleChunkIdx);
   }
 }
