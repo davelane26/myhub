@@ -1,0 +1,628 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="default">
+<meta name="apple-mobile-web-app-title" content="My Hub">
+<meta name="theme-color" content="#6b4c2a">
+<title>My Content Hub</title>
+<link rel="manifest" href="manifest.json">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Lora:ital,wght@0,400;0,600;1,400&family=DM+Sans:wght@300;400;500&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@tabler/icons-webfont@latest/tabler-icons.min.css">
+<style>
+:root {
+  --bg: #faf8f4;
+  --bg2: #f2ede4;
+  --bg3: #e8e0d0;
+  --card: #ffffff;
+  --text: #2a1f14;
+  --text2: #7a6a58;
+  --text3: #b0a090;
+  --border: rgba(107,76,42,0.12);
+  --border2: rgba(107,76,42,0.22);
+  --brown: #6b4c2a;
+  --brown-light: #f5ede0;
+  --green: #2d7a4f;
+  --green-light: #e8f5ee;
+  --blue: #2a5fa8;
+  --blue-light: #e8f0fa;
+  --purple: #6b4aab;
+  --purple-light: #f0ecfa;
+  --red: #c0392b;
+  --red-light: #fdf0ee;
+  --radius: 16px;
+  --radius-sm: 10px;
+  --shadow: 0 2px 16px rgba(107,76,42,0.08);
+  --font: 'DM Sans', sans-serif;
+  --font-serif: 'Lora', serif;
+}
+
+@media (prefers-color-scheme: dark) {
+  :root {
+    --bg: #1a1410;
+    --bg2: #241c14;
+    --bg3: #2e2418;
+    --card: #2a2018;
+    --text: #f0e8d8;
+    --text2: #a0907c;
+    --text3: #6a5a48;
+    --border: rgba(255,220,160,0.1);
+    --border2: rgba(255,220,160,0.2);
+    --brown-light: #3a2818;
+    --green-light: #1a3028;
+    --blue-light: #182038;
+    --purple-light: #281a40;
+    --red-light: #3a1810;
+  }
+}
+
+* { box-sizing: border-box; margin: 0; padding: 0; -webkit-tap-highlight-color: transparent; }
+
+body {
+  font-family: var(--font);
+  background: var(--bg);
+  color: var(--text);
+  min-height: 100vh;
+  min-height: -webkit-fill-available;
+}
+
+/* HEADER */
+.header {
+  background: var(--card);
+  border-bottom: 1px solid var(--border);
+  padding: 16px 20px 14px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  position: sticky;
+  top: 0;
+  z-index: 100;
+}
+.header-left h1 {
+  font-family: var(--font-serif);
+  font-size: 20px;
+  font-weight: 600;
+  color: var(--brown);
+  letter-spacing: -0.3px;
+}
+.header-left .date {
+  font-size: 12px;
+  color: var(--text3);
+  margin-top: 1px;
+}
+.briefing-btn {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  padding: 8px 14px;
+  background: var(--brown);
+  color: #fff;
+  border: none;
+  border-radius: 20px;
+  font-family: var(--font);
+  font-size: 13px;
+  font-weight: 500;
+  cursor: pointer;
+}
+.briefing-btn i { font-size: 15px; }
+
+/* MAIN */
+.main {
+  padding: 16px;
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 14px;
+  max-width: 900px;
+  margin: 0 auto;
+}
+
+@media (max-width: 540px) {
+  .main { grid-template-columns: 1fr; padding: 12px; gap: 12px; }
+  .header { padding: 14px 16px 12px; }
+}
+
+/* CARD */
+.card {
+  background: var(--card);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  box-shadow: var(--shadow);
+  overflow: hidden;
+  display: flex;
+  flex-direction: column;
+}
+.card-head {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 13px 15px 11px;
+  border-bottom: 1px solid var(--border);
+}
+.card-head i { font-size: 18px; }
+.card-head-title { font-size: 13px; font-weight: 500; flex: 1; }
+.badge {
+  font-size: 11px;
+  padding: 3px 8px;
+  border-radius: 20px;
+  font-weight: 500;
+}
+.card-body { padding: 14px; flex: 1; display: flex; flex-direction: column; gap: 10px; }
+
+/* THUMBNAIL */
+.thumb {
+  width: 100%;
+  aspect-ratio: 16/9;
+  background: var(--bg2);
+  border-radius: var(--radius-sm);
+  overflow: hidden;
+  position: relative;
+  cursor: pointer;
+  flex-shrink: 0;
+}
+.thumb img { width: 100%; height: 100%; object-fit: cover; }
+.play-btn {
+  position: absolute;
+  inset: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+.play-circle {
+  width: 42px; height: 42px;
+  background: rgba(0,0,0,0.6);
+  border-radius: 50%;
+  display: flex; align-items: center; justify-content: center;
+}
+.play-circle i { font-size: 18px; color: #fff; margin-left: 3px; }
+
+/* TEXT */
+.card-title { font-size: 13px; font-weight: 500; line-height: 1.4; }
+.card-meta { font-size: 11px; color: var(--text3); }
+.card-verse {
+  font-family: var(--font-serif);
+  font-size: 12px;
+  font-style: italic;
+  color: var(--text2);
+  line-height: 1.65;
+  padding: 8px 10px;
+  background: var(--bg2);
+  border-radius: var(--radius-sm);
+  border-left: 3px solid var(--brown);
+}
+
+/* PROGRESS */
+.progress-wrap { display: flex; flex-direction: column; gap: 4px; }
+.progress-labels { display: flex; justify-content: space-between; font-size: 10px; color: var(--text3); }
+.progress-track { height: 4px; background: var(--bg3); border-radius: 2px; overflow: hidden; }
+.progress-fill { height: 100%; border-radius: 2px; transition: width 0.4s ease; }
+
+/* STREAK */
+.streak { display: flex; gap: 4px; }
+.streak-day { flex: 1; display: flex; flex-direction: column; align-items: center; gap: 3px; }
+.streak-dot { width: 100%; height: 5px; border-radius: 3px; background: var(--bg3); }
+.streak-label { font-size: 9px; color: var(--text3); }
+
+/* NAV */
+.nav-row {
+  display: flex; align-items: center; justify-content: space-between;
+  background: var(--bg2); border-radius: var(--radius-sm); padding: 7px 10px;
+}
+.nav-row span { font-size: 12px; font-weight: 500; }
+.nav-btn {
+  background: none; border: none; cursor: pointer;
+  color: var(--text2); font-size: 18px; display: flex; align-items: center; padding: 2px;
+}
+.nav-btn:active { opacity: 0.6; }
+
+/* BUTTONS */
+.action-row { display: flex; gap: 6px; }
+.action-btn {
+  flex: 1; display: flex; align-items: center; justify-content: center; gap: 4px;
+  padding: 8px 4px; font-family: var(--font); font-size: 11px; font-weight: 500;
+  background: var(--bg2); border: 1px solid var(--border2); border-radius: var(--radius-sm);
+  color: var(--text2); cursor: pointer; transition: all 0.15s;
+}
+.action-btn:active { background: var(--bg3); transform: scale(0.97); }
+.action-btn i { font-size: 13px; }
+.action-btn.primary { background: var(--brown); color: #fff; border-color: transparent; }
+
+.pill-action {
+  display: flex; align-items: center; justify-content: center; gap: 6px;
+  width: 100%; padding: 9px; font-family: var(--font); font-size: 12px;
+  background: var(--bg2); border: 1px solid var(--border2); border-radius: var(--radius-sm);
+  color: var(--text2); cursor: pointer; transition: all 0.15s;
+}
+.pill-action:active { background: var(--bg3); }
+.pill-action i { font-size: 14px; }
+
+/* EMAIL */
+.email-list { flex: 1; }
+.email-item {
+  padding: 8px 0; border-bottom: 1px solid var(--border); cursor: pointer;
+}
+.email-item:last-child { border-bottom: none; }
+.email-item:active { opacity: 0.7; }
+.email-row { display: flex; justify-content: space-between; align-items: center; margin-bottom: 2px; }
+.email-from { font-size: 12px; font-weight: 500; display: flex; align-items: center; gap: 5px; }
+.email-unread-dot { width: 6px; height: 6px; border-radius: 50%; background: var(--blue); flex-shrink: 0; }
+.email-subject { font-size: 11px; color: var(--text2); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.email-time { font-size: 10px; color: var(--text3); flex-shrink: 0; margin-left: 6px; }
+
+/* BOTTOM BAR */
+.bottom-bar {
+  background: var(--card);
+  border-top: 1px solid var(--border);
+  padding: 12px 16px;
+  display: flex;
+  gap: 10px;
+  position: sticky;
+  bottom: 0;
+  max-width: 900px;
+  margin: 0 auto;
+}
+.bottom-btn {
+  flex: 1; display: flex; align-items: center; justify-content: center; gap: 6px;
+  padding: 10px; font-family: var(--font); font-size: 12px; font-weight: 500;
+  background: var(--bg2); border: 1px solid var(--border2); border-radius: var(--radius-sm);
+  color: var(--text2); cursor: pointer;
+}
+.bottom-btn:active { background: var(--bg3); }
+
+/* LOADING / ERROR */
+.state-msg {
+  flex: 1; display: flex; flex-direction: column; align-items: center;
+  justify-content: center; gap: 8px; padding: 20px 0;
+  font-size: 12px; color: var(--text3); text-align: center;
+}
+.state-msg i { font-size: 22px; }
+.err-msg { color: var(--red); }
+
+/* INSTALL BANNER */
+.install-banner {
+  margin: 12px 16px 0;
+  padding: 12px 14px;
+  background: var(--brown-light);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-sm);
+  display: flex; align-items: center; gap: 10px;
+  max-width: 900px; margin-left: auto; margin-right: auto;
+}
+.install-banner p { font-size: 12px; color: var(--text2); flex: 1; line-height: 1.5; }
+.install-banner strong { color: var(--brown); }
+.install-close { background: none; border: none; cursor: pointer; color: var(--text3); font-size: 18px; padding: 0; }
+</style>
+</head>
+<body>
+
+<div class="header">
+  <div class="header-left">
+    <h1>My Hub</h1>
+    <div class="date" id="dateLabel"></div>
+  </div>
+  <button class="briefing-btn" onclick="briefing()">
+    <i class="ti ti-sparkles"></i> Daily briefing
+  </button>
+</div>
+
+<div class="install-banner" id="installBanner">
+  <i class="ti ti-download" style="font-size:20px;color:var(--brown);flex-shrink:0"></i>
+  <p><strong>Add to home screen</strong> — tap the share icon in your browser then "Add to Home Screen" to install as an app.</p>
+  <button class="install-close" onclick="document.getElementById('installBanner').remove()">
+    <i class="ti ti-x"></i>
+  </button>
+</div>
+
+<div class="main">
+
+  <!-- VIDEO PANEL -->
+  <div class="card">
+    <div class="card-head">
+      <i class="ti ti-brand-youtube" style="color:#c0392b"></i>
+      <span class="card-head-title">Daily devotion</span>
+      <button onclick="loadVideo()" style="background:none;border:none;cursor:pointer;color:var(--text3);padding:0;margin-right:4px">
+        <i class="ti ti-refresh" style="font-size:15px"></i>
+      </button>
+      <span class="badge" style="background:var(--red-light);color:var(--red)" id="ytBadge">Loading</span>
+    </div>
+    <div class="card-body" id="ytBody">
+      <div class="state-msg"><i class="ti ti-loader"></i>Fetching today's video...</div>
+    </div>
+  </div>
+
+  <!-- EMAIL PANEL -->
+  <div class="card">
+    <div class="card-head">
+      <i class="ti ti-mail" style="color:var(--blue)"></i>
+      <span class="card-head-title">Email</span>
+      <span class="badge" style="background:var(--blue-light);color:var(--blue)" id="emailBadge">Loading</span>
+    </div>
+    <div class="card-body" id="emailBody">
+      <div class="state-msg"><i class="ti ti-loader"></i>Fetching emails...</div>
+    </div>
+  </div>
+
+  <!-- BIBLE PANEL -->
+  <div class="card">
+    <div class="card-head">
+      <i class="ti ti-book" style="color:var(--green)"></i>
+      <span class="card-head-title">Bible reading</span>
+      <span class="badge" style="background:var(--green-light);color:var(--green)" id="bibleBadge">Day 257</span>
+    </div>
+    <div class="card-body">
+      <div class="card-meta">BST · Chronological Cross-Reference</div>
+      <div class="nav-row">
+        <button class="nav-btn" onclick="changeDay(-1)"><i class="ti ti-chevron-left"></i></button>
+        <span id="dayLabel">Day 257 & 258</span>
+        <button class="nav-btn" onclick="changeDay(1)"><i class="ti ti-chevron-right"></i></button>
+      </div>
+      <div class="card-title" id="bRef">Deuteronomy 33 & 34</div>
+      <div class="card-verse" id="bVerse">"The eternal God is your dwelling place, and underneath are the everlasting arms." — Deut 33:27</div>
+      <div class="progress-wrap">
+        <div class="progress-labels"><span>2-year progress</span><span id="bPct">36%</span></div>
+        <div class="progress-track"><div class="progress-fill" id="bFill" style="width:36%;background:var(--green)"></div></div>
+      </div>
+      <div class="streak" id="bStreak"></div>
+      <div class="action-row">
+        <button class="action-btn" onclick="openBST()"><i class="ti ti-external-link"></i> Read</button>
+        <button class="action-btn" onclick="reflectBible()"><i class="ti ti-sparkles"></i> Reflect</button>
+        <button class="action-btn primary" onclick="markBibleRead()"><i class="ti ti-check"></i> Done</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- BOOK PANEL -->
+  <div class="card">
+    <div class="card-head">
+      <i class="ti ti-book-2" style="color:var(--purple)"></i>
+      <span class="card-head-title">All That Jesus Taught</span>
+      <span class="badge" style="background:var(--purple-light);color:var(--purple)" id="bookBadge">Ch 1</span>
+    </div>
+    <div class="card-body">
+      <div class="card-meta">Zac Poonen · cfcindia.com</div>
+      <div class="nav-row">
+        <button class="nav-btn" onclick="changeChapter(-1)"><i class="ti ti-chevron-left"></i></button>
+        <span id="chapterLabel">Chapter 1</span>
+        <button class="nav-btn" onclick="changeChapter(1)"><i class="ti ti-chevron-right"></i></button>
+      </div>
+      <div class="card-title" id="chapterTitle">The Other Half of the Great Commission</div>
+      <div class="card-meta" id="chapterMeta">Month 1 · Week 1 · ~3 chapters/week</div>
+      <div class="progress-wrap">
+        <div class="progress-labels"><span>4-month progress</span><span id="bookPct">1%</span></div>
+        <div class="progress-track"><div class="progress-fill" id="bookFill" style="width:1%;background:var(--purple)"></div></div>
+      </div>
+      <div class="streak" id="bookStreak"></div>
+      <div class="action-row">
+        <button class="action-btn" onclick="openChapter()"><i class="ti ti-external-link"></i> Read</button>
+        <button class="action-btn" onclick="reflectChapter()"><i class="ti ti-sparkles"></i> Reflect</button>
+        <button class="action-btn primary" onclick="markChapterRead()"><i class="ti ti-check"></i> Done</button>
+      </div>
+    </div>
+  </div>
+
+</div>
+
+<div class="bottom-bar">
+  <button class="bottom-btn" onclick="openSchedule()"><i class="ti ti-calendar" style="font-size:16px"></i> Schedule</button>
+  <button class="bottom-btn" onclick="window.open('https://biblestudytogether.com','_blank')"><i class="ti ti-book" style="font-size:16px"></i> BST</button>
+  <button class="bottom-btn" onclick="window.open('https://www.cfcindia.com/books/all-that-jesus-taught','_blank')"><i class="ti ti-book-2" style="font-size:16px"></i> Book</button>
+</div>
+
+<script>
+// ---- DATE ----
+const now = new Date();
+document.getElementById('dateLabel').textContent = now.toLocaleDateString('en-US',{weekday:'long',month:'long',day:'numeric'});
+
+// ---- STORAGE HELPERS (localStorage as fallback) ----
+const store = {
+  get: async (k) => { try { return localStorage.getItem(k); } catch(e){ return null; } },
+  set: async (k,v) => { try { localStorage.setItem(k,v); } catch(e){} }
+};
+
+// ---- STREAK ----
+function renderStreak(elId, color) {
+  const days = ['S','M','T','W','T','F','S'];
+  const td = new Date().getDay();
+  const el = document.getElementById(elId);
+  if (!el) return;
+  el.innerHTML = '';
+  days.forEach((d,i) => {
+    const wrap = document.createElement('div'); wrap.className = 'streak-day';
+    const dot = document.createElement('div'); dot.className = 'streak-dot';
+    if (i < td) dot.style.background = color;
+    else if (i === td) dot.style.background = color + '88';
+    const lbl = document.createElement('div'); lbl.className = 'streak-label'; lbl.textContent = d;
+    wrap.appendChild(dot); wrap.appendChild(lbl); el.appendChild(wrap);
+  });
+}
+
+// ---- BIBLE ----
+const planData = {
+  255:['Deuteronomy 30–31','"Choose life, that you and your offspring may live." — Deut 30:19'],
+  256:['Deuteronomy 32','"Ascribe greatness to our God! The Rock, his work is perfect." — Deut 32:3'],
+  257:['Deuteronomy 33','"The eternal God is your dwelling place, and underneath are the everlasting arms." — Deut 33:27'],
+  258:['Deuteronomy 34','"There has not arisen a prophet since in Israel like Moses, whom the LORD knew face to face." — Deut 34:10'],
+  259:['Joshua 1–2','"Be strong and courageous. Do not be frightened, for the LORD your God is with you." — Josh 1:9'],
+  260:['Joshua 3–4','"The LORD your God dried up the waters of the Jordan for you until you passed over." — Josh 4:23'],
+  261:['Joshua 5–6','"See, I have given Jericho into your hand." — Josh 6:2'],
+  262:['Joshua 7–8','"Do not fear and do not be dismayed." — Josh 8:1'],
+  263:['Joshua 9–10','"There has been no day like it, when the LORD heeded the voice of a man." — Josh 10:14'],
+};
+let bDays = [257,258];
+
+function renderBible() {
+  const d1 = bDays[0], d2 = bDays[1];
+  const r1 = planData[d1]||[`Day ${d1}`,''];
+  const r2 = planData[d2]||[`Day ${d2}`,''];
+  const two = d2 === d1+1;
+  document.getElementById('dayLabel').textContent = two ? `Day ${d1} & ${d2}` : `Day ${d1}`;
+  document.getElementById('bRef').textContent = two ? `${r1[0]} & ${r2[0]}` : r1[0];
+  document.getElementById('bVerse').textContent = r1[1];
+  document.getElementById('bibleBadge').textContent = `Day ${d1}`;
+  const pct = Math.round(d1/730*100);
+  document.getElementById('bPct').textContent = pct+'%';
+  document.getElementById('bFill').style.width = pct+'%';
+  renderStreak('bStreak','#2d7a4f');
+  store.set('bible_days', JSON.stringify(bDays));
+}
+function changeDay(d) { bDays=[bDays[0]+d,bDays[1]+d]; renderBible(); }
+function markBibleRead() { bDays=[bDays[0]+2,bDays[1]+2]; renderBible(); }
+function openBST() { window.open(`https://biblestudytogether.com/chronological-cross-reference-bible-reading-plan/day-${String(bDays[0]).padStart(3,'0')}/`,'_blank'); }
+function reflectBible() { alert('Open Claude and ask: "Reflect on '+document.getElementById('bRef').textContent+'"'); }
+
+store.get('bible_days').then(v => { if(v) bDays=JSON.parse(v); renderBible(); });
+
+// ---- BOOK ----
+const chapters = [
+  'The Other Half of the Great Commission','Baptism','Teaching People to Do All That Jesus Commanded',
+  'Complementary Functions in the Body of Christ','Doing Must Come Before Teaching',
+  'Seeking God\'s Glory and Honor Alone','The Kingdom of God','Progressive Sanctification',
+  'Becoming Fishers of Men','Follow God\'s Will for You','Right Attitudes 1 to 3',
+  'Right Attitudes 4 to 6','Right Attitudes 7 to 9','Jesus\' Disciples Must Be Salt and Light',
+  'Inward Righteousness and Anger','Righteous Anger, Unrighteous Anger and Lustful Thinking',
+  'Faith to Overcome Anger and Lustful Thinking','How to Overcome','Love the Spirit of Truth',
+  'The Spirit of Jesus\' Commandments','Secret Giving and Praying','How to Pray',
+  'Fasting in Secret and Love of Money','Do Not Be Anxious','Do Not Judge',
+  'Seek to Prophesy the Right Word','Asking and Receiving Spiritual Blessings',
+  'Narrow Way and How to Discern False Prophets','A Bridal Relationship with Jesus',
+  'Building on the Rock','The Cost of Discipleship','Take Up Your Cross Daily',
+  'Losing Your Life to Find It','Forgiving Others','Humility and Servanthood',
+  'The Greatest in the Kingdom','Welcoming Little Ones','Dealing with Sin in the Church',
+  'Prayer and Agreement','The Unforgiving Servant','Marriage and Divorce',
+  'Children and the Kingdom','Riches and the Kingdom','The First and the Last',
+  'The Two Sons','The Wicked Tenants','Rendering to Caesar','The Greatest Commandment',
+  'Beware of the Scribes','The Widow\'s Offering','Signs of the End Times',
+  'The Ten Virgins','The Talents','The Sheep and the Goats','Servanthood at the Last Supper',
+  'The New Commandment','The Way, Truth and Life','The True Vine','The Holy Spirit',
+  'Prayer in Jesus\' Name','Overcoming the World','The High Priestly Prayer',
+  'The Great Commission','Baptism in the Holy Spirit','Signs Following Believers',
+  'Repentance and Forgiveness','Jesus\' Post-Resurrection Teachings','The Ascension and Our Hope',
+  'Walking in the Spirit','Loving One Another','Bearing Fruit','Abiding in Christ',
+  'Faithful to the End','Watching and Praying','The Overcomer\'s Reward',
+  'All Authority Given to Jesus','He is Coming Again','Summary: All That Jesus Taught',
+  'Living Out Jesus\' Teachings','Final Encouragement',
+];
+let curCh = 1;
+
+function renderBook() {
+  const t = chapters[curCh-1]||`Chapter ${curCh}`;
+  const pct = Math.round(curCh/80*100);
+  document.getElementById('bookBadge').textContent = `Ch ${curCh}`;
+  document.getElementById('chapterLabel').textContent = `Chapter ${curCh}`;
+  document.getElementById('chapterTitle').textContent = t;
+  document.getElementById('chapterMeta').textContent = `Month ${Math.ceil(curCh/20)} · Week ${Math.ceil(curCh/(80/17))} · ~3 chapters/week`;
+  document.getElementById('bookPct').textContent = pct+'%';
+  document.getElementById('bookFill').style.width = pct+'%';
+  renderStreak('bookStreak','#6b4aab');
+  store.set('book_chapter', String(curCh));
+}
+function changeChapter(d) { curCh=Math.max(1,Math.min(80,curCh+d)); renderBook(); }
+function markChapterRead() { curCh=Math.min(80,curCh+1); renderBook(); }
+function openChapter() { window.open(`https://www.cfcindia.com/all-that-jesus-taught/all-that-jesus-taught-${curCh}-of-80`,'_blank'); }
+function reflectChapter() { alert('Open Claude and ask: "Reflect on chapter '+curCh+' of All That Jesus Taught: '+chapters[curCh-1]+'"'); }
+
+store.get('book_chapter').then(v => { if(v) curCh=parseInt(v)||1; renderBook(); });
+
+// ---- YOUTUBE ----
+const CHANNEL = 'cfcdailydevotions-zacpoone6432';
+async function loadVideo() {
+  document.getElementById('ytBody').innerHTML = '<div class="state-msg"><i class="ti ti-loader"></i>Fetching today\'s video...</div>';
+  document.getElementById('ytBadge').textContent = 'Loading';
+  const key = 'yt_' + now.toISOString().split('T')[0];
+  const cached = await store.get(key);
+  if (cached) { renderVideo(JSON.parse(cached)); return; }
+  try {
+    const res = await fetch('https://api.anthropic.com/v1/messages', {
+      method:'POST', headers:{'Content-Type':'application/json'},
+      body: JSON.stringify({
+        model:'claude-sonnet-4-20250514', max_tokens:800,
+        tools:[{"type":"web_search_20250305","name":"web_search"}],
+        system:`Find the most recent YouTube video from @${CHANNEL} (CFC Daily Devotions by Zac Poonen). Return ONLY JSON: {"videoId":"<11char>","title":"<title>","published":"<friendly date>"}. If not found: {"error":"not found"}.`,
+        messages:[{role:'user',content:'Latest video JSON only.'}]
+      })
+    });
+    const data = await res.json();
+    const text = data.content.filter(b=>b.type==='text').map(b=>b.text).join('');
+    const video = JSON.parse(text.replace(/```json|```/g,'').trim());
+    if (video.error || !video.videoId) throw new Error();
+    store.set(key, JSON.stringify(video));
+    renderVideo(video);
+  } catch(e) {
+    document.getElementById('ytBody').innerHTML = `
+      <div class="state-msg err-msg"><i class="ti ti-alert-circle"></i>Couldn't load video</div>
+      <button class="pill-action" onclick="window.open('https://www.youtube.com/@${CHANNEL}','_blank')">
+        <i class="ti ti-brand-youtube"></i> Open channel directly
+      </button>
+      <button class="pill-action" onclick="loadVideo()" style="margin-top:6px">
+        <i class="ti ti-refresh"></i> Try again
+      </button>`;
+    document.getElementById('ytBadge').textContent = 'Error';
+  }
+}
+function renderVideo(v) {
+  document.getElementById('ytBadge').textContent = 'Today';
+  document.getElementById('ytBody').innerHTML = `
+    <div class="thumb" onclick="window.open('https://www.youtube.com/watch?v=${v.videoId}','_blank')">
+      <img src="https://img.youtube.com/vi/${v.videoId}/mqdefault.jpg" alt="thumbnail">
+      <div class="play-btn"><div class="play-circle"><i class="ti ti-player-play"></i></div></div>
+    </div>
+    <div>
+      <div class="card-title">${v.title}</div>
+      <div class="card-meta">${v.published} · CFC Daily Devotions</div>
+    </div>
+    <button class="pill-action" onclick="window.open('https://www.youtube.com/watch?v=${v.videoId}','_blank')">
+      <i class="ti ti-player-play"></i> Watch now
+    </button>`;
+}
+loadVideo();
+
+// ---- EMAIL ----
+async function loadEmails() {
+  try {
+    const res = await fetch('https://api.anthropic.com/v1/messages', {
+      method:'POST', headers:{'Content-Type':'application/json'},
+      body: JSON.stringify({
+        model:'claude-sonnet-4-20250514', max_tokens:800,
+        system:'List 5 most recent Gmail threads. Return ONLY JSON array: [{from,subject,time,unread}]. Sender name only. Friendly time. Subject under 50 chars.',
+        messages:[{role:'user',content:'My 5 most recent email threads'}],
+        mcp_servers:[{type:'url',url:'https://gmailmcp.googleapis.com/mcp/v1',name:'gmail-mcp'}]
+      })
+    });
+    const data = await res.json();
+    const text = data.content.filter(b=>b.type==='text').map(b=>b.text).join('');
+    const emails = JSON.parse(text.replace(/```json|```/g,'').trim());
+    const unread = emails.filter(e=>e.unread).length;
+    document.getElementById('emailBadge').textContent = unread ? `${unread} unread` : 'All read';
+    const body = document.getElementById('emailBody');
+    body.innerHTML = '';
+    const list = document.createElement('div'); list.className = 'email-list';
+    emails.forEach(e => {
+      const d = document.createElement('div'); d.className = 'email-item';
+      d.innerHTML = `<div class="email-row"><div class="email-from">${e.unread?'<span class="email-unread-dot"></span>':''}<span>${e.from}</span></div><span class="email-time">${e.time}</span></div><div class="email-subject">${e.subject}</div>`;
+      list.appendChild(d);
+    });
+    body.appendChild(list);
+    const btn = document.createElement('button'); btn.className = 'pill-action'; btn.style.marginTop='8px';
+    btn.innerHTML = '<i class="ti ti-edit"></i> Compose with AI';
+    btn.onclick = () => alert('Open Claude to compose an email with AI help.');
+    body.appendChild(btn);
+  } catch(e) {
+    document.getElementById('emailBody').innerHTML = '<div class="state-msg err-msg"><i class="ti ti-alert-circle"></i>Couldn\'t load emails.<br><small>Make sure Gmail is connected in Claude settings.</small></div>';
+    document.getElementById('emailBadge').textContent = 'Error';
+  }
+}
+loadEmails();
+
+// ---- ACTIONS ----
+function briefing() { alert('Open Claude and say:\n"Give me a daily briefing across my devotion video, emails, Bible reading ('+document.getElementById('bRef').textContent+'), and book chapter ('+document.getElementById('chapterTitle').textContent+')"'); }
+function openSchedule() { alert('Open Claude and say:\n"Help me set a weekly content schedule for my hub"'); }
+
+// ---- PWA SERVICE WORKER ----
+if ('serviceWorker' in navigator) {
+  navigator.serviceWorker.register('sw.js').catch(()=>{});
+}
+</script>
+</body>
+</html>
