@@ -523,8 +523,16 @@ async function listenBible() {
     if (!res.ok) throw new Error(`HTTP ${res.status}`);
     const doc = new DOMParser().parseFromString(await res.text(), 'text/html');
     const el = doc.querySelector('.entry-content, .et_pb_text_inner, article, main');
-    el?.querySelectorAll('script,style,nav,header,footer,h1,h4,h5,[class*="share"],[class*="sidebar"],[class*="button"]').forEach(e => e.remove());
-    bibleText = (el?.textContent || '').replace(/\s+/g,' ').trim();
+    if (!el) throw new Error('Content area not found');
+    const stopPhrases = ['study journal','together challenge','subscribe','copyright','©','print version'];
+    let stop = false;
+    const lines = [...el.querySelectorAll('h2,h3,p')].filter(e => {
+      const t = e.textContent.toLowerCase().trim();
+      if (!t) return false;
+      if (stopPhrases.some(p => t.includes(p))) { stop = true; }
+      return !stop;
+    }).map(e => e.textContent.trim());
+    bibleText = lines.join(' ').replace(/\s+/g,' ').trim();
     if (!bibleText) throw new Error('No text found');
     bibleCharIndex = 0;
     speakBible(0);
@@ -535,9 +543,18 @@ async function listenBible() {
   }
 }
 
+function getBestVoice() {
+  const voices = speechSynthesis.getVoices();
+  return voices.find(v => v.lang.startsWith('en') && /enhanced|premium|neural/i.test(v.name))
+      || voices.find(v => v.name === 'Samantha')
+      || voices.find(v => v.lang === 'en-US' && v.localService)
+      || voices.find(v => v.lang.startsWith('en'))
+      || null;
+}
 function speakBible(fromChar) {
   const u = new SpeechSynthesisUtterance(bibleText.slice(fromChar));
   u.rate = bibleRate; u.lang = 'en-US';
+  const voice = getBestVoice(); if (voice) u.voice = voice;
   u.onboundary = e => { bibleCharIndex = fromChar + (e.charIndex || 0); };
   u.onend = () => setBiblePlayerState('idle');
   u.onerror = e => { if (e.error !== 'interrupted') setBiblePlayerState('idle'); };
