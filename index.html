@@ -526,7 +526,7 @@ function reflectChapter() { alert('Open Claude and ask: "Reflect on chapter '+cu
 store.get('book_chapter').then(v => { if(v) curCh=parseInt(v)||1; renderBook(); });
 
 // ---- YOUTUBE ----
-const CHANNEL = 'cfcdailydevotions-zacpoone6432';
+const CHANNEL_ID = 'UC-GjQuCwrr41RXCroJl34KA';
 async function loadVideo() {
   document.getElementById('ytBody').innerHTML = '<div class="state-msg"><i class="ti ti-loader"></i>Fetching today\'s video...</div>';
   document.getElementById('ytBadge').textContent = 'Loading';
@@ -534,25 +534,22 @@ async function loadVideo() {
   const cached = await store.get(key);
   if (cached) { renderVideo(JSON.parse(cached)); return; }
   try {
-    const res = await fetch('https://api.anthropic.com/v1/messages', {
-      method:'POST', headers:{'Content-Type':'application/json'},
-      body: JSON.stringify({
-        model:'claude-sonnet-4-20250514', max_tokens:800,
-        tools:[{"type":"web_search_20250305","name":"web_search"}],
-        system:`Find the most recent YouTube video from @${CHANNEL} (CFC Daily Devotions by Zac Poonen). Return ONLY JSON: {"videoId":"<11char>","title":"<title>","published":"<friendly date>"}. If not found: {"error":"not found"}.`,
-        messages:[{role:'user',content:'Latest video JSON only.'}]
-      })
-    });
+    const rssUrl = `https://www.youtube.com/feeds/videos.xml?channel_id=${CHANNEL_ID}`;
+    const res = await fetch(`https://api.rss2json.com/v1/api.json?rss_url=${encodeURIComponent(rssUrl)}`);
     const data = await res.json();
-    const text = data.content.filter(b=>b.type==='text').map(b=>b.text).join('');
-    const video = JSON.parse(text.replace(/```json|```/g,'').trim());
-    if (video.error || !video.videoId) throw new Error();
+    if (data.status !== 'ok' || !data.items?.length) throw new Error();
+    const item = data.items[0];
+    const videoId = item.link.split('v=')[1]?.split('&')[0];
+    if (!videoId) throw new Error();
+    const pub = new Date(item.pubDate);
+    const published = pub.toLocaleDateString('en-US', {month:'short', day:'numeric', year:'numeric'});
+    const video = {videoId, title: item.title, published};
     store.set(key, JSON.stringify(video));
     renderVideo(video);
   } catch(e) {
     document.getElementById('ytBody').innerHTML = `
       <div class="state-msg err-msg"><i class="ti ti-alert-circle"></i>Couldn't load video</div>
-      <button class="pill-action" onclick="window.open('https://www.youtube.com/@${CHANNEL}','_blank')">
+      <button class="pill-action" onclick="window.open('https://www.youtube.com/channel/${CHANNEL_ID}','_blank')">
         <i class="ti ti-brand-youtube"></i> Open channel directly
       </button>
       <button class="pill-action" onclick="loadVideo()" style="margin-top:6px">
