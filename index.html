@@ -382,9 +382,20 @@ body {
       </div>
       <div class="streak" id="bStreak"></div>
       <div class="action-row">
-        <button class="action-btn" onclick="openBST()"><i class="ti ti-external-link"></i> Read</button>
+        <button class="action-btn" id="bListenBtn" onclick="listenBible()"><i class="ti ti-headphones"></i> Listen</button>
         <button class="action-btn" onclick="reflectBible()"><i class="ti ti-sparkles"></i> Reflect</button>
         <button class="action-btn primary" onclick="markBibleRead()"><i class="ti ti-check"></i> Done</button>
+      </div>
+      <div id="biblePlayer" style="display:none;flex-direction:column;gap:8px">
+        <div class="action-row">
+          <button class="action-btn" id="bPauseBtn" onclick="pauseBible()"><i class="ti ti-player-pause"></i> Pause</button>
+          <button class="action-btn" onclick="stopBible()"><i class="ti ti-player-stop"></i> Stop</button>
+        </div>
+        <div class="action-row">
+          <button class="action-btn" id="bRate10" onclick="setBibleRate(1.0)">1×</button>
+          <button class="action-btn" id="bRate15" onclick="setBibleRate(1.5)">1.5×</button>
+          <button class="action-btn primary" id="bRate20" onclick="setBibleRate(2.0)">2×</button>
+        </div>
       </div>
     </div>
   </div>
@@ -497,37 +508,75 @@ function renderBible() {
 }
 function changeDay(d) { bDays=[bDays[0]+d,bDays[1]+d]; renderBible(); }
 function markBibleRead() { bDays=[bDays[0]+2,bDays[1]+2]; renderBible(); }
-function showReaderModal(title, html) {
-  let m = document.getElementById('readerModal');
-  if (!m) { m = document.createElement('div'); m.id = 'readerModal'; m.className = 'reader-modal'; document.body.appendChild(m); }
-  m.innerHTML = `
-    <div class="reader-modal-head">
-      <button class="reader-modal-close" onclick="document.getElementById('readerModal').remove()"><i class="ti ti-x"></i></button>
-      <span class="reader-modal-title">${title}</span>
-    </div>
-    <div class="reader-modal-body">${html}</div>`;
-}
-async function openBST() {
-  const dayStr = String(bDays[0]).padStart(3,'0');
-  const url = `https://biblestudytogether.com/chronological-cross-reference-bible-reading-plan/day-${dayStr}/`;
-  showReaderModal(document.getElementById('bRef').textContent, '<div class="state-msg"><i class="ti ti-loader"></i>Loading passage...</div>');
+function openBST() { window.open(`https://biblestudytogether.com/chronological-cross-reference-bible-reading-plan/day-${String(bDays[0]).padStart(3,'0')}/`,'_blank'); }
+function reflectBible() { alert('Open Claude and ask: "Reflect on '+document.getElementById('bRef').textContent+'"'); }
+
+// ---- BIBLE TTS ----
+let bibleText = '', bibleCharIndex = 0, bibleRate = 2.0;
+
+async function listenBible() {
+  if (speechSynthesis.speaking || speechSynthesis.pending) { stopBible(); return; }
+  setBiblePlayerState('loading');
   try {
+    const url = `https://biblestudytogether.com/chronological-cross-reference-bible-reading-plan/day-${String(bDays[0]).padStart(3,'0')}/`;
     const res = await fetch(`https://corsproxy.io/?${encodeURIComponent(url)}`);
     if (!res.ok) throw new Error(`HTTP ${res.status}`);
     const doc = new DOMParser().parseFromString(await res.text(), 'text/html');
-    const content = doc.querySelector('.entry-content, .et_pb_text_inner, article, main');
-    if (!content) throw new Error('Content not found');
-    content.querySelectorAll('script,style,iframe,form,.sharedaddy,.wpcnt,.et_pb_button,img,nav,header,footer,[class*="share"],[class*="comment"],[class*="related"],[class*="sidebar"]').forEach(el => el.remove());
-    const html = content.innerHTML.trim();
-    if (!html) throw new Error('No readable content');
-    showReaderModal(document.getElementById('bRef').textContent, html);
+    const el = doc.querySelector('.entry-content, .et_pb_text_inner, article, main');
+    el?.querySelectorAll('script,style,nav,header,footer,h1,h4,h5,[class*="share"],[class*="sidebar"],[class*="button"]').forEach(e => e.remove());
+    bibleText = (el?.textContent || '').replace(/\s+/g,' ').trim();
+    if (!bibleText) throw new Error('No text found');
+    bibleCharIndex = 0;
+    speakBible(0);
   } catch(e) {
-    showReaderModal(document.getElementById('bRef').textContent, `
-      <div class="state-msg err-msg"><i class="ti ti-alert-circle"></i>Couldn't load inline.<br><small>${e.message}</small></div>
-      <button class="pill-action" style="margin-top:12px" onclick="window.open('${url}','_blank')"><i class="ti ti-external-link"></i> Open on BST website</button>`);
+    console.error(e);
+    setBiblePlayerState('error');
+    setTimeout(() => setBiblePlayerState('idle'), 2500);
   }
 }
-function reflectBible() { alert('Open Claude and ask: "Reflect on '+document.getElementById('bRef').textContent+'"'); }
+
+function speakBible(fromChar) {
+  const u = new SpeechSynthesisUtterance(bibleText.slice(fromChar));
+  u.rate = bibleRate; u.lang = 'en-US';
+  u.onboundary = e => { bibleCharIndex = fromChar + (e.charIndex || 0); };
+  u.onend = () => setBiblePlayerState('idle');
+  u.onerror = e => { if (e.error !== 'interrupted') setBiblePlayerState('idle'); };
+  speechSynthesis.speak(u);
+  setBiblePlayerState('playing');
+}
+
+function pauseBible() {
+  if (speechSynthesis.paused) { speechSynthesis.resume(); document.getElementById('bPauseBtn').innerHTML = '<i class="ti ti-player-pause"></i> Pause'; }
+  else { speechSynthesis.pause(); document.getElementById('bPauseBtn').innerHTML = '<i class="ti ti-player-play"></i> Resume'; }
+}
+
+function stopBible() { speechSynthesis.cancel(); setBiblePlayerState('idle'); }
+
+function setBibleRate(rate) {
+  bibleRate = rate;
+  ['10','15','20'].forEach(r => document.getElementById('bRate'+r)?.classList.remove('primary'));
+  document.getElementById('bRate' + String(rate).replace('.',''))?.classList.add('primary');
+  if (speechSynthesis.speaking || speechSynthesis.pending) { speechSynthesis.cancel(); speakBible(bibleCharIndex); }
+}
+
+function setBiblePlayerState(state) {
+  const btn = document.getElementById('bListenBtn');
+  const player = document.getElementById('biblePlayer');
+  const pauseBtn = document.getElementById('bPauseBtn');
+  if (state === 'idle') {
+    player.style.display = 'none';
+    btn.innerHTML = '<i class="ti ti-headphones"></i> Listen';
+    if (pauseBtn) pauseBtn.innerHTML = '<i class="ti ti-player-pause"></i> Pause';
+  } else if (state === 'loading') {
+    player.style.display = 'none';
+    btn.innerHTML = '<i class="ti ti-loader"></i> Loading...';
+  } else if (state === 'playing') {
+    player.style.display = 'flex';
+    btn.innerHTML = '<i class="ti ti-headphones"></i> Listening';
+  } else if (state === 'error') {
+    btn.innerHTML = '<i class="ti ti-alert-circle"></i> Error';
+  }
+}
 
 store.get('bible_days').then(v => { if(v) bDays=JSON.parse(v); renderBible(); });
 
