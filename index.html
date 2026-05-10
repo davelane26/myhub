@@ -389,8 +389,8 @@ body {
       </div>
       <div id="biblePlayer" style="display:none;flex-direction:column;gap:8px">
         <div class="progress-wrap">
-          <div class="progress-labels"><span>Reading progress</span><span id="bTTSPct">0%</span></div>
-          <div class="progress-track"><div class="progress-fill" id="bTTSFill" style="width:0%;background:var(--green)"></div></div>
+          <div class="progress-labels"><span id="bTTSLabel">Reading...</span><span id="bTTSPct">0%</span></div>
+          <div class="progress-track" style="height:7px"><div class="progress-fill" id="bTTSFill" style="width:0%;background:var(--green)"></div></div>
         </div>
         <div class="action-row">
           <button class="action-btn" id="bPauseBtn" onclick="pauseBible()"><i class="ti ti-player-pause"></i> Pause</button>
@@ -569,11 +569,13 @@ async function prefetchBibleText() {
 function speakChunk(idx) {
   if (idx >= bibleChunks.length) { setBiblePlayerState('idle'); return; }
   bibleChunkIdx = idx;
-  const pct = Math.round(idx / bibleChunks.length * 100);
+  const pct = Math.round((idx + 1) / bibleChunks.length * 100);
   const pctEl = document.getElementById('bTTSPct');
   const fillEl = document.getElementById('bTTSFill');
   if (pctEl) pctEl.textContent = pct + '%';
   if (fillEl) fillEl.style.width = pct + '%';
+  const lblEl = document.getElementById('bTTSLabel');
+  if (lblEl) lblEl.textContent = `Part ${idx + 1} of ${bibleChunks.length}`;
   const u = new SpeechSynthesisUtterance(bibleChunks[idx]);
   u.rate = bibleRate; u.lang = 'en-US';
   u.onend = () => setTimeout(() => speakChunk(idx + 1), 100);
