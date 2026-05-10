@@ -513,7 +513,21 @@ function openBST() { window.open(`https://biblestudytogether.com/chronological-c
 function reflectBible() { alert('Open Claude and ask: "Reflect on '+document.getElementById('bRef').textContent+'"'); }
 
 // ---- BIBLE TTS ----
-let bibleText = '', bibleCharIndex = 0, bibleRate = 2.0;
+let bibleText = '', bibleRate = 2.0;
+let bibleChunks = [], bibleChunkIdx = 0, bibleKeepAlive = null;
+
+function chunkText(text, size) {
+  const chunks = [];
+  while (text.length > 0) {
+    if (text.length <= size) { chunks.push(text); break; }
+    let cut = text.lastIndexOf('. ', size);
+    if (cut < 100) cut = text.lastIndexOf(' ', size);
+    if (cut < 0) cut = size;
+    chunks.push(text.slice(0, cut + 1).trim());
+    text = text.slice(cut + 1).trim();
+  }
+  return chunks;
+}
 
 async function prefetchBibleText() {
   try {
@@ -535,43 +549,29 @@ async function prefetchBibleText() {
   } catch(e) { /* silent */ }
 }
 
-let bibleKeepAlive = null;
+function speakChunk(idx) {
+  if (idx >= bibleChunks.length) { clearInterval(bibleKeepAlive); setBiblePlayerState('idle'); return; }
+  bibleChunkIdx = idx;
+  const u = new SpeechSynthesisUtterance(bibleChunks[idx]);
+  u.rate = bibleRate; u.lang = 'en-US';
+  u.onend = () => speakChunk(idx + 1);
+  u.onerror = e => { if (e.error !== 'interrupted') { clearInterval(bibleKeepAlive); setBiblePlayerState('idle'); } };
+  speechSynthesis.speak(u);
+  speechSynthesis.resume();
+}
+
 function listenBible() {
   if (!('speechSynthesis' in window)) { alert('Text-to-speech is not supported in this browser.'); return; }
   if (speechSynthesis.speaking || speechSynthesis.pending) { stopBible(); return; }
   const text = bibleText || document.getElementById('bRef').textContent;
-  const u = new SpeechSynthesisUtterance(text);
-  u.rate = bibleRate;
-  u.lang = 'en-US';
-  u.onend = () => { clearInterval(bibleKeepAlive); setBiblePlayerState('idle'); };
-  u.onerror = e => { clearInterval(bibleKeepAlive); alert('Audio error: ' + e.error); setBiblePlayerState('idle'); };
-  speechSynthesis.speak(u);
-  // Chrome Android fix: resume immediately and keep alive every 10s
-  speechSynthesis.resume();
+  bibleChunks = chunkText(text, 2000);
+  bibleChunkIdx = 0;
+  clearInterval(bibleKeepAlive);
   bibleKeepAlive = setInterval(() => {
-    if (!speechSynthesis.speaking) { clearInterval(bibleKeepAlive); return; }
-    speechSynthesis.pause();
-    speechSynthesis.resume();
+    if (!speechSynthesis.speaking) return;
+    speechSynthesis.pause(); speechSynthesis.resume();
   }, 10000);
-  setBiblePlayerState('playing');
-}
-
-function getBestVoice() {
-  const voices = speechSynthesis.getVoices();
-  return voices.find(v => v.lang.startsWith('en') && /enhanced|premium|neural/i.test(v.name))
-      || voices.find(v => v.name === 'Samantha')
-      || voices.find(v => v.lang === 'en-US' && v.localService)
-      || voices.find(v => v.lang.startsWith('en'))
-      || null;
-}
-function speakBible(fromChar) {
-  const u = new SpeechSynthesisUtterance(bibleText.slice(fromChar));
-  u.rate = bibleRate; u.lang = 'en-US';
-  const voice = getBestVoice(); if (voice) u.voice = voice;
-  u.onboundary = e => { bibleCharIndex = fromChar + (e.charIndex || 0); };
-  u.onend = () => setBiblePlayerState('idle');
-  u.onerror = e => { if (e.error !== 'interrupted') setBiblePlayerState('idle'); };
-  speechSynthesis.speak(u);
+  speakChunk(0);
   setBiblePlayerState('playing');
 }
 
@@ -586,7 +586,11 @@ function setBibleRate(rate) {
   bibleRate = rate;
   ['10','15','20'].forEach(r => document.getElementById('bRate'+r)?.classList.remove('primary'));
   document.getElementById('bRate' + String(rate).replace('.',''))?.classList.add('primary');
-  if (speechSynthesis.speaking || speechSynthesis.pending) { speechSynthesis.cancel(); speakBible(bibleCharIndex); }
+  if (speechSynthesis.speaking || speechSynthesis.pending) {
+    speechSynthesis.cancel();
+    bibleChunks = chunkText(bibleText || document.getElementById('bRef').textContent, 2000);
+    speakChunk(bibleChunkIdx);
+  }
 }
 
 function setBiblePlayerState(state) {
