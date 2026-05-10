@@ -534,18 +534,19 @@ async function loadVideo() {
   const cached = await store.get(key);
   if (cached) { renderVideo(JSON.parse(cached)); return; }
   try {
-    const rssUrl = `https://www.youtube.com/feeds/videos.xml?channel_id=${CHANNEL_ID}`;
-    const res = await fetch(`https://api.rss2json.com/v1/api.json?rss_url=${encodeURIComponent(rssUrl)}`);
+    const feedUrl = `https://www.youtube.com/feeds/videos.xml?channel_id=${CHANNEL_ID}`;
+    const res = await fetch(`https://corsproxy.io/?${encodeURIComponent(feedUrl)}`);
     if (!res.ok) throw new Error(`HTTP ${res.status}`);
-    const data = await res.json();
-    if (data.status !== 'ok') throw new Error(data.message || data.status);
-    if (!data.items?.length) throw new Error('No items in feed');
-    const item = data.items[0];
-    const videoId = item.link.split('v=')[1]?.split('&')[0];
-    if (!videoId) throw new Error('Could not parse video ID');
-    const pub = new Date(item.pubDate);
-    const published = pub.toLocaleDateString('en-US', {month:'short', day:'numeric', year:'numeric'});
-    const video = {videoId, title: item.title, published};
+    const xml = new DOMParser().parseFromString(await res.text(), 'text/xml');
+    const entry = xml.querySelector('entry');
+    if (!entry) throw new Error('No videos in feed');
+    const videoId = entry.querySelector('link')?.getAttribute('href')?.split('v=')[1]?.split('&')[0]
+                 || xml.getElementsByTagNameNS('http://www.youtube.com/xml/schemas/2015','videoId')[0]?.textContent;
+    const title = entry.querySelector('title')?.textContent;
+    if (!videoId || !title) throw new Error('Could not parse feed entries');
+    const published = new Date(entry.querySelector('published')?.textContent)
+      .toLocaleDateString('en-US', {month:'short', day:'numeric', year:'numeric'});
+    const video = {videoId, title, published};
     store.set(key, JSON.stringify(video));
     renderVideo(video);
   } catch(e) {
