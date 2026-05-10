@@ -538,21 +538,14 @@ async function prefetchBibleText() {
 function listenBible() {
   if (!('speechSynthesis' in window)) { alert('Text-to-speech is not supported in this browser.'); return; }
   if (speechSynthesis.speaking || speechSynthesis.pending) { stopBible(); return; }
+  const text = bibleText || document.getElementById('bRef').textContent;
+  const u = new SpeechSynthesisUtterance(text);
+  u.rate = bibleRate;
+  u.lang = 'en-US';
+  u.onend = () => setBiblePlayerState('idle');
+  u.onerror = e => { alert('Audio error: ' + e.error); setBiblePlayerState('idle'); };
+  speechSynthesis.speak(u);
   setBiblePlayerState('playing');
-  if (bibleText) {
-    bibleCharIndex = 0; speakBible(0); return;
-  }
-  // Speak immediately to satisfy browser gesture requirement, swap in full text when ready
-  const ref = document.getElementById('bRef').textContent;
-  const intro = new SpeechSynthesisUtterance(`Loading ${ref}. Please wait.`);
-  intro.rate = 1; intro.lang = 'en-US';
-  const v = getBestVoice(); if (v) intro.voice = v;
-  speechSynthesis.speak(intro);
-  prefetchBibleText().then(() => {
-    speechSynthesis.cancel();
-    if (bibleText) { bibleCharIndex = 0; speakBible(0); }
-    else { bibleText = ref; bibleCharIndex = 0; speakBible(0); }
-  });
 }
 
 function getBestVoice() {
