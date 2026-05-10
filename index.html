@@ -336,7 +336,7 @@ body {
   <div class="card">
     <div class="card-head">
       <i class="ti ti-mail" style="color:var(--blue)"></i>
-      <span class="card-head-title">Email</span>
+      <span class="card-head-title">Word for the Week</span>
       <span class="badge" style="background:var(--blue-light);color:var(--blue)" id="emailBadge">Loading</span>
     </div>
     <div class="card-body" id="emailBody">
@@ -585,31 +585,28 @@ async function loadEmails() {
       method:'POST', headers:{'Content-Type':'application/json'},
       body: JSON.stringify({
         model:'claude-sonnet-4-20250514', max_tokens:800,
-        system:'List 5 most recent Gmail threads. Return ONLY JSON array: [{from,subject,time,unread}]. Sender name only. Friendly time. Subject under 50 chars.',
-        messages:[{role:'user',content:'My 5 most recent email threads'}],
+        system:'Search Gmail for the most recent email from cfc@cfcindia.com with subject containing "Word for the Week". Return ONLY JSON: {"subject":"<subject>","time":"<friendly date>","snippet":"<2-sentence summary of the email body>","unread":<true|false>}. If not found: {"error":"not found"}.',
+        messages:[{role:'user',content:'Find the most recent "Word for the Week" email from cfc@cfcindia.com'}],
         mcp_servers:[{type:'url',url:'https://gmailmcp.googleapis.com/mcp/v1',name:'gmail-mcp'}]
       })
     });
     const data = await res.json();
     const text = data.content.filter(b=>b.type==='text').map(b=>b.text).join('');
-    const emails = JSON.parse(text.replace(/```json|```/g,'').trim());
-    const unread = emails.filter(e=>e.unread).length;
-    document.getElementById('emailBadge').textContent = unread ? `${unread} unread` : 'All read';
+    const email = JSON.parse(text.replace(/```json|```/g,'').trim());
+    if (email.error || !email.subject) throw new Error();
+    document.getElementById('emailBadge').textContent = email.unread ? 'Unread' : 'Read';
     const body = document.getElementById('emailBody');
-    body.innerHTML = '';
-    const list = document.createElement('div'); list.className = 'email-list';
-    emails.forEach(e => {
-      const d = document.createElement('div'); d.className = 'email-item';
-      d.innerHTML = `<div class="email-row"><div class="email-from">${e.unread?'<span class="email-unread-dot"></span>':''}<span>${e.from}</span></div><span class="email-time">${e.time}</span></div><div class="email-subject">${e.subject}</div>`;
-      list.appendChild(d);
-    });
-    body.appendChild(list);
-    const btn = document.createElement('button'); btn.className = 'pill-action'; btn.style.marginTop='8px';
-    btn.innerHTML = '<i class="ti ti-edit"></i> Compose with AI';
-    btn.onclick = () => alert('Open Claude to compose an email with AI help.');
-    body.appendChild(btn);
+    body.innerHTML = `
+      <div class="email-item" style="border-bottom:none;padding-bottom:0">
+        <div class="email-row">
+          <div class="email-from">${email.unread ? '<span class="email-unread-dot"></span>' : ''}<span>CFC India</span></div>
+          <span class="email-time">${email.time}</span>
+        </div>
+        <div class="email-subject" style="white-space:normal;margin-bottom:6px">${email.subject}</div>
+        <div class="card-verse">${email.snippet}</div>
+      </div>`;
   } catch(e) {
-    document.getElementById('emailBody').innerHTML = '<div class="state-msg err-msg"><i class="ti ti-alert-circle"></i>Couldn\'t load emails.<br><small>Make sure Gmail is connected in Claude settings.</small></div>';
+    document.getElementById('emailBody').innerHTML = '<div class="state-msg err-msg"><i class="ti ti-alert-circle"></i>Couldn\'t load Word for the Week.<br><small>Make sure Gmail is connected in Claude settings.</small></div>';
     document.getElementById('emailBadge').textContent = 'Error';
   }
 }
