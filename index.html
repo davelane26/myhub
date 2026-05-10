@@ -512,7 +512,16 @@ function changeDay(d) { bDays=[bDays[0]+d,bDays[1]+d]; renderBible(); }
 function markBibleRead() { bDays=[bDays[0]+2,bDays[1]+2]; renderBible(); }
 function openBST() {
   const dayPath = `chronological-cross-reference-bible-reading-plan/day-${String(bDays[0]).padStart(3,'0')}/`;
-  window.open(`https://biblestudytogether.com/${dayPath}`, '_blank');
+  const webUrl = `https://biblestudytogether.com/${dayPath}`;
+  if (/Android/i.test(navigator.userAgent)) {
+    const a = document.createElement('a');
+    a.href = `intent://#Intent;action=android.intent.action.MAIN;category=android.intent.category.LAUNCHER;package=net.synergyts.bst;S.browser_fallback_url=${encodeURIComponent(webUrl)};end`;
+    document.body.appendChild(a);
+    a.click();
+    document.body.removeChild(a);
+  } else {
+    window.open(webUrl, '_blank');
+  }
 }
 function reflectBible() { alert('Open Claude and ask: "Reflect on '+document.getElementById('bRef').textContent+'"'); }
 
