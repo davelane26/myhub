@@ -388,6 +388,10 @@ body {
         <button class="action-btn primary" onclick="markBibleRead()"><i class="ti ti-check"></i> Done</button>
       </div>
       <div id="biblePlayer" style="display:none;flex-direction:column;gap:8px">
+        <div class="progress-wrap">
+          <div class="progress-labels"><span>Reading progress</span><span id="bTTSPct">0%</span></div>
+          <div class="progress-track"><div class="progress-fill" id="bTTSFill" style="width:0%;background:var(--green)"></div></div>
+        </div>
         <div class="action-row">
           <button class="action-btn" id="bPauseBtn" onclick="pauseBible()"><i class="ti ti-player-pause"></i> Pause</button>
           <button class="action-btn" onclick="stopBible()"><i class="ti ti-player-stop"></i> Stop</button>
@@ -565,6 +569,11 @@ async function prefetchBibleText() {
 function speakChunk(idx) {
   if (idx >= bibleChunks.length) { setBiblePlayerState('idle'); return; }
   bibleChunkIdx = idx;
+  const pct = Math.round(idx / bibleChunks.length * 100);
+  const pctEl = document.getElementById('bTTSPct');
+  const fillEl = document.getElementById('bTTSFill');
+  if (pctEl) pctEl.textContent = pct + '%';
+  if (fillEl) fillEl.style.width = pct + '%';
   const u = new SpeechSynthesisUtterance(bibleChunks[idx]);
   u.rate = bibleRate; u.lang = 'en-US';
   u.onend = () => setTimeout(() => speakChunk(idx + 1), 100);
@@ -609,6 +618,8 @@ function setBiblePlayerState(state) {
     player.style.display = 'none';
     btn.innerHTML = '<i class="ti ti-headphones"></i> Listen';
     if (pauseBtn) pauseBtn.innerHTML = '<i class="ti ti-player-pause"></i> Pause';
+    const pctEl = document.getElementById('bTTSPct'); if (pctEl) pctEl.textContent = '0%';
+    const fillEl = document.getElementById('bTTSFill'); if (fillEl) fillEl.style.width = '0%';
   } else if (state === 'loading') {
     player.style.display = 'none';
     btn.innerHTML = '<i class="ti ti-loader"></i> Loading...';
