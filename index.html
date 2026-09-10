@@ -942,9 +942,14 @@ function renderVideo(v) {
       <div class="card-title">${v.title}</div>
       <div class="card-meta">${v.published} · CFC Daily Devotions</div>
     </div>
-    <button class="pill-action" onclick="window.open('https://www.youtube.com/watch?v=${v.videoId}','_blank')">
-      <i class="ti ti-player-play"></i> Watch now
-    </button>`;
+    <div class="action-row">
+      <button class="action-btn primary" onclick="window.open('https://www.youtube.com/watch?v=${v.videoId}','_blank')">
+        <i class="ti ti-player-play"></i> Watch
+      </button>
+      <button class="action-btn" onclick="reflectVideo()">
+        <i class="ti ti-sparkles"></i> Reflect
+      </button>
+    </div>`;
 }
 loadVideo();
 
@@ -1002,9 +1007,14 @@ function renderWordForWeek(a) {
     <div class="card-meta">${a.date} · CFC India</div>
     <div class="card-title" style="font-size:14px;font-weight:600;line-height:1.4">${a.title}</div>
     <div class="card-verse">${a.excerpt}</div>
-    <button class="pill-action" onclick="window.open('${a.url}','_blank')">
-      <i class="ti ti-external-link"></i> Read full article
-    </button>`;
+    <div class="action-row">
+      <button class="action-btn primary" onclick="window.open('${a.url}','_blank')">
+        <i class="ti ti-external-link"></i> Read
+      </button>
+      <button class="action-btn" onclick="reflectWftw()">
+        <i class="ti ti-sparkles"></i> Reflect
+      </button>
+    </div>`;
 }
 loadWordForWeek();
 
@@ -1414,6 +1424,82 @@ Include:
 ### Recommended Daily Flow (Morning / Midday / Evening)
 ### Weekly Pacing (Mon–Sun rhythm)
 ### Habit Tip for Consistency`;
+
+  } else if (type === 'video') {
+    const vidTitle = window.currentVideoData?.title || 'Daily Video Devotion';
+    currentAiContext = { type: 'video', title: vidTitle };
+
+    badgeEl.textContent = 'Daily Devotion';
+    badgeEl.style.background = 'var(--red-light)';
+    badgeEl.style.color = 'var(--red)';
+    titleEl.textContent = vidTitle;
+
+    bannerHtml = `
+      <div class="ai-context-banner" style="border-left-color:var(--red)">
+        <strong>${vidTitle}</strong>
+        CFC Daily Devotions · Zac Poonen
+      </div>
+    `;
+
+    chips = [
+      'What is the core message?',
+      'How to apply this practically today',
+      'Scripture foundation for this devotion',
+      'Closing prayer'
+    ];
+
+    prompt = `Please provide a spiritual devotional reflection based on today's video devotion from Zac Poonen:
+Devotion Topic: "${vidTitle}"
+Source: CFC Daily Devotions
+
+Format your response with the following structured sections:
+### Core Spiritual Principle
+(A 1-2 sentence core truth capturing this devotion)
+
+### Devotional Insight & Meaning
+(2-3 short, deeply reflective paragraphs exploring what the Holy Spirit is teaching through this message, emphasizing inward truth and walking with Jesus)
+
+### Heart Examination
+(3 sharp questions for personal meditation and heart-searching today)
+
+### Today's Prayer
+(A heartfelt prayer dedicating this day to the Lord in light of this message)`;
+
+  } else if (type === 'wftw') {
+    const titleEl = document.querySelector('#wftwBody .card-title');
+    const excerptEl = document.querySelector('#wftwBody .card-verse');
+    const title = titleEl ? titleEl.textContent : 'Word for the Week';
+    const excerpt = excerptEl ? excerptEl.textContent : '';
+    currentAiContext = { type: 'wftw', title };
+
+    badgeEl.textContent = 'Word for the Week';
+    badgeEl.style.background = 'var(--blue-light)';
+    badgeEl.style.color = 'var(--blue)';
+    titleEl.textContent = title;
+
+    bannerHtml = `
+      <div class="ai-context-banner" style="border-left-color:var(--blue)">
+        <strong>${title}</strong>
+        Word for the Week · Zac Poonen
+      </div>
+    `;
+
+    chips = [
+      'Summarize key takeaways',
+      'How to live this out in daily life',
+      'Key Bible verses to remember',
+      'A prayer of surrender'
+    ];
+
+    prompt = `Please provide a devotional study based on this week's article from Zac Poonen:
+Article Title: "${title}"
+Excerpt: "${excerpt}"
+
+Format your response with:
+### Foundational Spiritual Truth
+### Walking in the Light (Devotional Insight)
+### Heart Examination (3 Personal Questions)
+### Prayer for Grace`;
   }
 
   // Render loading state
@@ -1535,6 +1621,14 @@ function reflectChapter() {
 
 function briefing() {
   startAiReflection('briefing');
+}
+
+function reflectVideo() {
+  startAiReflection('video');
+}
+
+function reflectWftw() {
+  startAiReflection('wftw');
 }
 
 function openSchedule() {

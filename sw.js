@@ -1,4 +1,4 @@
-const CACHE = 'myhub-v1';
+const CACHE = 'myhub-v2';
 const ASSETS = ['/myhub/', '/myhub/index.html'];
 
 self.addEventListener('install', e => {
