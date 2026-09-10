@@ -321,6 +321,174 @@ body {
 .install-banner p { font-size: 12px; color: var(--text2); flex: 1; line-height: 1.5; }
 .install-banner strong { color: var(--brown); }
 .install-close { background: none; border: none; cursor: pointer; color: var(--text3); font-size: 18px; padding: 0; }
+
+/* AI DEVOTIONAL & REFLECTION MODAL */
+.ai-modal {
+  position: fixed; inset: 0; background: var(--bg); z-index: 300;
+  display: flex; flex-direction: column; overflow: hidden;
+}
+.ai-modal[hidden] {
+  display: none !important;
+}
+.ai-modal-head {
+  padding: 12px 16px; background: var(--card); border-bottom: 1px solid var(--border);
+  display: flex; align-items: center; justify-content: space-between; gap: 10px;
+  position: sticky; top: 0; z-index: 10;
+}
+.ai-modal-title-wrap {
+  display: flex; flex-direction: column; gap: 2px; flex: 1; min-width: 0;
+}
+.ai-modal-badge {
+  display: inline-flex; align-items: center; gap: 4px;
+  font-size: 11px; font-weight: 500; border-radius: 20px;
+  padding: 2px 8px; width: fit-content; background: var(--brown-light); color: var(--brown);
+}
+.ai-modal-title {
+  font-family: var(--font-serif); font-size: 16px; font-weight: 600;
+  color: var(--brown); white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
+}
+.ai-modal-actions {
+  display: flex; align-items: center; gap: 6px; flex-shrink: 0;
+}
+.ai-icon-btn {
+  background: var(--bg2); border: 1px solid var(--border2); border-radius: 50%;
+  width: 34px; height: 34px; display: flex; align-items: center; justify-content: center;
+  cursor: pointer; color: var(--text2); font-size: 16px; transition: all 0.15s;
+}
+.ai-icon-btn:active { background: var(--bg3); transform: scale(0.94); }
+.ai-icon-btn.active { background: var(--brown); color: #fff; border-color: transparent; }
+
+.ai-modal-body {
+  flex: 1; overflow-y: auto; padding: 16px 18px 90px; max-width: 760px;
+  margin: 0 auto; width: 100%; display: flex; flex-direction: column; gap: 14px;
+}
+.ai-context-banner {
+  background: var(--card); border: 1px solid var(--border); border-radius: var(--radius-sm);
+  padding: 12px 14px; border-left: 3px solid var(--brown); font-size: 13px;
+  color: var(--text2); line-height: 1.5;
+}
+.ai-context-banner strong { color: var(--brown); display: block; margin-bottom: 2px; font-size: 14px; }
+
+/* DEVOTIONAL CONTENT STYLING */
+.ai-content {
+  background: var(--card); border: 1px solid var(--border); border-radius: var(--radius);
+  padding: 18px 20px; box-shadow: var(--shadow); line-height: 1.75; font-size: 14px;
+  color: var(--text); display: flex; flex-direction: column; gap: 12px;
+}
+.ai-content h3 {
+  font-family: var(--font-serif); font-size: 16px; font-weight: 600;
+  color: var(--brown); margin-top: 10px; margin-bottom: 2px;
+  display: flex; align-items: center; gap: 6px;
+}
+.ai-content p {
+  margin-bottom: 4px;
+}
+.ai-content ul, .ai-content ol {
+  padding-left: 20px; margin: 6px 0; display: flex; flex-direction: column; gap: 6px;
+}
+.ai-content li { line-height: 1.6; }
+.ai-content blockquote {
+  font-family: var(--font-serif); font-style: italic; background: var(--bg2);
+  border-left: 3px solid var(--brown); padding: 10px 14px; border-radius: var(--radius-sm);
+  margin: 8px 0; color: var(--text2);
+}
+.ai-prayer-box {
+  background: var(--brown-light); border: 1px solid var(--border2);
+  border-radius: var(--radius-sm); padding: 14px; margin-top: 8px;
+  font-style: italic; font-family: var(--font-serif); color: var(--brown);
+  line-height: 1.7;
+}
+.ai-prayer-box strong {
+  display: block; font-style: normal; font-family: var(--font);
+  font-size: 11px; text-transform: uppercase; letter-spacing: 0.5px;
+  margin-bottom: 6px; color: var(--brown); font-weight: 600;
+}
+
+/* CHIPS */
+.ai-chips {
+  display: flex; flex-wrap: wrap; gap: 6px; margin-top: 6px;
+}
+.ai-chip {
+  background: var(--bg2); border: 1px solid var(--border2); border-radius: 20px;
+  padding: 6px 12px; font-size: 12px; font-family: var(--font); color: var(--text2);
+  cursor: pointer; transition: all 0.15s; display: inline-flex; align-items: center; gap: 4px;
+}
+.ai-chip:hover { background: var(--bg3); }
+.ai-chip:active { transform: scale(0.97); }
+
+/* CHAT MESSAGES */
+.ai-chat-thread {
+  display: flex; flex-direction: column; gap: 10px; margin-top: 8px;
+}
+.ai-msg {
+  padding: 12px 14px; border-radius: var(--radius-sm); font-size: 13px; line-height: 1.6;
+  max-width: 90%;
+}
+.ai-msg.user {
+  align-self: flex-end; background: var(--brown); color: #fff;
+  border-bottom-right-radius: 2px;
+}
+.ai-msg.assistant {
+  align-self: flex-start; background: var(--card); border: 1px solid var(--border);
+  color: var(--text); border-bottom-left-radius: 2px; box-shadow: var(--shadow);
+}
+
+/* INPUT BAR */
+.ai-input-bar {
+  position: fixed; bottom: 0; left: 0; right: 0; background: var(--card);
+  border-top: 1px solid var(--border); padding: 10px 16px;
+  display: flex; justify-content: center; z-index: 20;
+}
+.ai-input-bar-inner {
+  max-width: 760px; width: 100%; display: flex; gap: 8px; align-items: center;
+}
+.ai-input {
+  flex: 1; padding: 10px 16px; font-family: var(--font); font-size: 13px;
+  border: 1px solid var(--border2); border-radius: 24px; background: var(--bg);
+  color: var(--text); outline: none;
+}
+.ai-input:focus { border-color: var(--brown); }
+.ai-send-btn {
+  background: var(--brown); color: #fff; border: none; border-radius: 50%;
+  width: 36px; height: 36px; display: flex; align-items: center; justify-content: center;
+  cursor: pointer; flex-shrink: 0; transition: opacity 0.15s;
+}
+.ai-send-btn:disabled { opacity: 0.5; cursor: not-allowed; }
+
+/* API KEY SETUP CARD */
+.ai-setup-card {
+  background: var(--card); border: 1px solid var(--border); border-radius: var(--radius);
+  padding: 24px 20px; text-align: center; display: flex; flex-direction: column;
+  align-items: center; gap: 14px; box-shadow: var(--shadow);
+}
+.ai-setup-icon {
+  width: 50px; height: 50px; border-radius: 50%; background: var(--brown-light);
+  color: var(--brown); display: flex; align-items: center; justify-content: center; font-size: 24px;
+}
+.ai-setup-card h2 {
+  font-family: var(--font-serif); color: var(--brown); font-size: 18px; font-weight: 600;
+}
+.ai-setup-card p {
+  font-size: 13px; color: var(--text2); line-height: 1.6; max-width: 440px;
+}
+.ai-setup-input-wrap {
+  width: 100%; max-width: 440px; display: flex; flex-direction: column; gap: 8px;
+}
+.ai-key-input {
+  width: 100%; padding: 11px 14px; border: 1px solid var(--border2);
+  border-radius: var(--radius-sm); font-size: 13px; font-family: monospace;
+  background: var(--bg); color: var(--text); outline: none;
+}
+.ai-key-input:focus { border-color: var(--brown); }
+
+@keyframes spin {
+  from { transform: rotate(0deg); }
+  to { transform: rotate(360deg); }
+}
+.spin {
+  animation: spin 1.2s linear infinite;
+  display: inline-block;
+}
 </style>
 </head>
 <body>
@@ -454,6 +622,43 @@ body {
   <button class="bottom-btn" onclick="window.open('https://www.cfcindia.com/books/all-that-jesus-taught','_blank')"><i class="ti ti-book-2" style="font-size:16px"></i> Book</button>
 </div>
 
+<!-- AI DEVOTIONAL & REFLECTION MODAL -->
+<div class="ai-modal" id="aiModal" hidden>
+  <div class="ai-modal-head">
+    <div class="ai-modal-title-wrap">
+      <span class="ai-modal-badge" id="aiModalBadge">Bible Reflection</span>
+      <div class="ai-modal-title" id="aiModalTitle">Devotional Reflection</div>
+    </div>
+    <div class="ai-modal-actions">
+      <button class="ai-icon-btn" id="aiTTSBtn" onclick="toggleAiTTS()" title="Listen aloud">
+        <i class="ti ti-headphones"></i>
+      </button>
+      <button class="ai-icon-btn" id="aiCopyBtn" onclick="copyAiDevotional()" title="Copy devotion">
+        <i class="ti ti-copy"></i>
+      </button>
+      <button class="ai-icon-btn" id="aiSettingsBtn" onclick="openAiSettings()" title="API Key Settings">
+        <i class="ti ti-key"></i>
+      </button>
+      <button class="ai-icon-btn" onclick="closeAiModal()" title="Close">
+        <i class="ti ti-x"></i>
+      </button>
+    </div>
+  </div>
+
+  <div class="ai-modal-body" id="aiModalBody">
+    <!-- Populated dynamically -->
+  </div>
+
+  <div class="ai-input-bar" id="aiInputBar" style="display:none">
+    <div class="ai-input-bar-inner">
+      <input type="text" class="ai-input" id="aiQueryInput" placeholder="Ask a question about this devotion..." onkeydown="if(event.key==='Enter') sendAiFollowup()">
+      <button class="ai-send-btn" id="aiSendBtn" onclick="sendAiFollowup()" title="Send">
+        <i class="ti ti-send"></i>
+      </button>
+    </div>
+  </div>
+</div>
+
 <script>
 // ---- DATE ----
 const now = new Date();
@@ -527,7 +732,7 @@ function openBST() {
     window.open(webUrl, '_blank');
   }
 }
-function reflectBible() { alert('Open Claude and ask: "Reflect on '+document.getElementById('bRef').textContent+'"'); }
+function reflectBible() { startAiReflection('bible'); }
 
 // ---- BIBLE TTS ----
 let bibleText = '', bibleRate = 2.0;
@@ -686,7 +891,7 @@ function renderBook() {
 function changeChapter(d) { curCh=Math.max(1,Math.min(80,curCh+d)); renderBook(); }
 function markChapterRead() { curCh=Math.min(80,curCh+1); renderBook(); }
 function openChapter() { window.open(`https://www.cfcindia.com/all-that-jesus-taught/all-that-jesus-taught-${curCh}-of-80`,'_blank'); }
-function reflectChapter() { alert('Open Claude and ask: "Reflect on chapter '+curCh+' of All That Jesus Taught: '+chapters[curCh-1]+'"'); }
+function reflectChapter() { startAiReflection('chapter'); }
 
 store.get('book_chapter').then(v => { if(v) curCh=parseInt(v)||1; renderBook(); });
 
@@ -726,6 +931,7 @@ async function loadVideo() {
   }
 }
 function renderVideo(v) {
+  window.currentVideoData = v;
   document.getElementById('ytBadge').textContent = 'Today';
   document.getElementById('ytBody').innerHTML = `
     <div class="thumb" onclick="window.open('https://www.youtube.com/watch?v=${v.videoId}','_blank')">
@@ -802,9 +1008,538 @@ function renderWordForWeek(a) {
 }
 loadWordForWeek();
 
-// ---- ACTIONS ----
-function briefing() { alert('Open Claude and say:\n"Give me a daily briefing across my devotion video, emails, Bible reading ('+document.getElementById('bRef').textContent+'), and book chapter ('+document.getElementById('chapterTitle').textContent+')"'); }
-function openSchedule() { alert('Open Claude and say:\n"Help me set a weekly content schedule for my hub"'); }
+// ---- ACTIONS & GEMINI AI COMPANION ----
+let currentAiContext = null;
+let currentAiDevotionalRaw = '';
+let currentAiChat = [];
+let aiTTSPlaying = false;
+
+function getGeminiApiKey() {
+  return localStorage.getItem('gemini_api_key') || '';
+}
+
+function setGeminiApiKey(key) {
+  if (key) {
+    localStorage.setItem('gemini_api_key', key.trim());
+  } else {
+    localStorage.removeItem('gemini_api_key');
+  }
+}
+
+function openAiSettings() {
+  const currentKey = getGeminiApiKey();
+  const bodyEl = document.getElementById('aiModalBody');
+  document.getElementById('aiInputBar').style.display = 'none';
+  document.getElementById('aiModalBadge').textContent = 'Settings';
+  document.getElementById('aiModalBadge').style.background = 'var(--brown-light)';
+  document.getElementById('aiModalBadge').style.color = 'var(--brown)';
+  document.getElementById('aiModalTitle').textContent = 'Google AI Studio Configuration';
+
+  bodyEl.innerHTML = `
+    <div class="ai-setup-card">
+      <div class="ai-setup-icon"><i class="ti ti-key"></i></div>
+      <h2>Google AI Studio API Key</h2>
+      <p>Connect your free Gemini API key to generate instant, spiritually grounded devotional reflections directly inside My Hub.</p>
+      
+      <div class="ai-setup-input-wrap">
+        <input type="password" id="geminiKeyInput" class="ai-key-input" placeholder="AIzaSy..." value="${currentKey}">
+        <div style="display:flex;gap:8px;width:100%;margin-top:6px">
+          <button class="pill-action" style="flex:1;background:var(--brown);color:#fff;border-color:transparent" onclick="saveApiKeyFromModal()">
+            <i class="ti ti-device-floppy"></i> Save Key
+          </button>
+          ${currentKey ? `
+            <button class="pill-action" style="background:var(--red-light);color:var(--red);border-color:transparent" onclick="clearApiKeyFromModal()">
+              <i class="ti ti-trash"></i> Remove
+            </button>
+          ` : ''}
+        </div>
+      </div>
+
+      <div style="font-size:12px;color:var(--text3);line-height:1.5;margin-top:4px">
+        Need a key? It only takes 30 seconds: <br>
+        <a href="https://aistudio.google.com/app/apikey" target="_blank" style="color:var(--brown);font-weight:600;text-decoration:underline">
+          Get a free API key from Google AI Studio &rarr;
+        </a>
+      </div>
+    </div>
+  `;
+}
+
+function saveApiKeyFromModal() {
+  const input = document.getElementById('geminiKeyInput');
+  const val = input ? input.value.trim() : '';
+  if (!val) {
+    alert('Please enter a valid Gemini API key.');
+    return;
+  }
+  setGeminiApiKey(val);
+  if (currentAiContext && currentAiContext.type) {
+    startAiReflection(currentAiContext.type);
+  } else {
+    closeAiModal();
+  }
+}
+
+function clearApiKeyFromModal() {
+  setGeminiApiKey('');
+  openAiSettings();
+}
+
+function closeAiModal() {
+  stopAiTTS();
+  const modal = document.getElementById('aiModal');
+  modal.hidden = true;
+  document.getElementById('aiInputBar').style.display = 'none';
+}
+
+function stopAiTTS() {
+  if ('speechSynthesis' in window) {
+    speechSynthesis.cancel();
+  }
+  aiTTSPlaying = false;
+  const btn = document.getElementById('aiTTSBtn');
+  if (btn) {
+    btn.classList.remove('active');
+    btn.innerHTML = '<i class="ti ti-headphones"></i>';
+  }
+}
+
+function toggleAiTTS() {
+  if (!('speechSynthesis' in window)) {
+    alert('Text-to-speech is not supported in this browser.');
+    return;
+  }
+
+  if (speechSynthesis.speaking || aiTTSPlaying) {
+    stopAiTTS();
+    return;
+  }
+
+  if (!currentAiDevotionalRaw) return;
+
+  // Clean markdown syntax for clear speech
+  const cleanText = currentAiDevotionalRaw
+    .replace(/[#*`_~]/g, '')
+    .replace(/^>\s*/gm, '')
+    .replace(/\[([^\]]+)\]\([^\)]+\)/g, '$1')
+    .replace(/\n\s*\n/g, '. ')
+    .trim();
+
+  const utterance = new SpeechSynthesisUtterance(cleanText);
+  utterance.rate = 1.0;
+  utterance.lang = 'en-US';
+  utterance.onend = () => stopAiTTS();
+  utterance.onerror = () => stopAiTTS();
+
+  const btn = document.getElementById('aiTTSBtn');
+  if (btn) {
+    btn.classList.add('active');
+    btn.innerHTML = '<i class="ti ti-player-pause"></i>';
+  }
+
+  aiTTSPlaying = true;
+  speechSynthesis.speak(utterance);
+}
+
+function copyAiDevotional() {
+  if (!currentAiDevotionalRaw) return;
+  navigator.clipboard.writeText(currentAiDevotionalRaw).then(() => {
+    const btn = document.getElementById('aiCopyBtn');
+    if (btn) {
+      const orig = btn.innerHTML;
+      btn.innerHTML = '<i class="ti ti-check" style="color:var(--green)"></i>';
+      setTimeout(() => { btn.innerHTML = orig; }, 2000);
+    }
+  }).catch(() => {
+    alert('Devotional copied!');
+  });
+}
+
+function renderMarkdown(md) {
+  if (!md) return '';
+  let html = md;
+
+  // Escape HTML characters
+  html = html.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
+
+  // Headers
+  html = html.replace(/^### (.*$)/gim, '<h3><i class="ti ti-sparkles" style="font-size:14px;color:var(--brown)"></i> $1</h3>');
+  html = html.replace(/^## (.*$)/gim, '<h2>$1</h2>');
+  html = html.replace(/^# (.*$)/gim, '<h1>$1</h1>');
+
+  // Bold & Italic
+  html = html.replace(/\*\*([^*]+)\*\*/g, '<strong>$1</strong>');
+  html = html.replace(/\*([^*]+)\*/g, '<em>$1</em>');
+
+  // Blockquotes (styled prayer / scripture callouts)
+  html = html.replace(/^\s*&gt;\s*(.*$)/gim, '<blockquote>$1</blockquote>');
+
+  // Lists
+  html = html.replace(/^\s*[-*]\s+(.*$)/gim, '<li>$1</li>');
+  html = html.replace(/(<li>[\s\S]*?<\/li>)/g, '<ul>$1</ul>');
+  html = html.replace(/<\/ul>\s*<ul>/g, '');
+
+  // Paragraphs
+  const paragraphs = html.split(/\n\s*\n/);
+  html = paragraphs.map(p => {
+    p = p.trim();
+    if (!p) return '';
+    if (p.startsWith('<h') || p.startsWith('<ul') || p.startsWith('<block') || p.startsWith('<div')) return p;
+    return `<p>${p.replace(/\n/g, '<br>')}</p>`;
+  }).join('');
+
+  return html;
+}
+
+async function callGeminiApi(prompt, systemInstruction = '') {
+  const apiKey = getGeminiApiKey();
+  if (!apiKey) throw new Error('NO_API_KEY');
+
+  const models = ['gemini-2.5-flash', 'gemini-1.5-flash'];
+  let lastError = null;
+
+  for (const model of models) {
+    try {
+      const url = `https://generativelanguage.googleapis.com/v1beta/models/${model}:generateContent?key=${apiKey}`;
+      const payload = {
+        contents: [{ role: 'user', parts: [{ text: prompt }] }],
+      };
+      if (systemInstruction) {
+        payload.systemInstruction = { parts: [{ text: systemInstruction }] };
+      }
+
+      const res = await fetch(url, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(payload)
+      });
+
+      if (!res.ok) {
+        const errorData = await res.json().catch(() => ({}));
+        const errMsg = errorData.error?.message || `HTTP ${res.status}`;
+        throw new Error(errMsg);
+      }
+
+      const data = await res.json();
+      const text = data.candidates?.[0]?.content?.parts?.[0]?.text;
+      if (!text) throw new Error('No reflection content received from Gemini.');
+      return text;
+    } catch (err) {
+      lastError = err;
+      if (err.message && (err.message.includes('not found') || err.message.includes('404'))) {
+        continue; // Try next model
+      }
+      throw err;
+    }
+  }
+  throw lastError;
+}
+
+async function startAiReflection(type) {
+  const modal = document.getElementById('aiModal');
+  const bodyEl = document.getElementById('aiModalBody');
+  const inputBar = document.getElementById('aiInputBar');
+  const badgeEl = document.getElementById('aiModalBadge');
+  const titleEl = document.getElementById('aiModalTitle');
+
+  stopAiTTS();
+  modal.hidden = false;
+  inputBar.style.display = 'none';
+  currentAiDevotionalRaw = '';
+  currentAiChat = [];
+
+  const apiKey = getGeminiApiKey();
+  if (!apiKey) {
+    currentAiContext = { type };
+    openAiSettings();
+    return;
+  }
+
+  let prompt = '';
+  let sysInstruction = 'You are a warm, reverent, Christ-centered devotional guide in the discipleship tradition of Zac Poonen (CFC India). Your reflections emphasize genuine discipleship, inward purity of heart, walking in humility and love, overcoming sin through the power of the Holy Spirit, and practical day-to-day obedience rather than religious ritual. Your writing is concise, deeply biblical, personal, and encouraging.';
+  let bannerHtml = '';
+  let chips = [];
+
+  if (type === 'bible') {
+    const bRef = document.getElementById('bRef') ? document.getElementById('bRef').textContent : '';
+    const bVerse = document.getElementById('bVerse') ? document.getElementById('bVerse').textContent : '';
+    const dayText = document.getElementById('dayLabel') ? document.getElementById('dayLabel').textContent : '';
+
+    currentAiContext = { type: 'bible', title: bRef, ref: bRef, verse: bVerse, day: dayText };
+    badgeEl.textContent = 'Bible · ' + dayText;
+    badgeEl.style.background = 'var(--green-light)';
+    badgeEl.style.color = 'var(--green)';
+    titleEl.textContent = bRef;
+
+    bannerHtml = `
+      <div class="ai-context-banner" style="border-left-color:var(--green)">
+        <strong>${bRef}</strong>
+        ${bVerse}
+      </div>
+    `;
+
+    chips = [
+      'How do I apply this today?',
+      'Key Hebrew / Greek insights',
+      'Cross-references with Jesus\' teachings',
+      'Help me pray through this'
+    ];
+
+    prompt = `Please provide a devotional reflection on today's chronological Bible reading:
+Reading: ${bRef} (${dayText})
+Featured Key Scripture: ${bVerse}
+${bibleText ? 'Context Text Excerpt: ' + bibleText.slice(0, 1500) : ''}
+
+Format your response with the following structured sections:
+### Core Spiritual Principle
+(A 1-2 sentence core truth from this passage that anchors the soul)
+
+### Devotional Insight & Meaning
+(2-3 short, deeply reflective paragraphs exploring what God is revealing here, connecting to Christ and inward heart transformation)
+
+### Heart Examination
+(3 sharp, honest, practical questions for personal reflection today)
+
+### Today's Prayer
+(A warm, reverent 3-4 sentence prayer dedicating this day to the Lord in light of these scriptures)`;
+
+  } else if (type === 'chapter') {
+    const title = chapters[curCh - 1] || `Chapter ${curCh}`;
+    currentAiContext = { type: 'chapter', title: `Ch ${curCh}: ${title}`, chNum: curCh };
+
+    badgeEl.textContent = `All That Jesus Taught · Ch ${curCh}`;
+    badgeEl.style.background = 'var(--purple-light)';
+    badgeEl.style.color = 'var(--purple)';
+    titleEl.textContent = title;
+
+    bannerHtml = `
+      <div class="ai-context-banner" style="border-left-color:var(--purple)">
+        <strong>Chapter ${curCh}: ${title}</strong>
+        All That Jesus Taught · Discipleship Study by Zac Poonen
+      </div>
+    `;
+
+    chips = [
+      'What is the hardest part to obey?',
+      'How does this differ from standard religion?',
+      'Scripture foundation for this chapter',
+      'Give me an actionable challenge for today'
+    ];
+
+    prompt = `Please provide a focused devotional study for Chapter ${curCh} of Zac Poonen's book "All That Jesus Taught":
+Chapter Title: "${title}"
+Chapter Number: ${curCh} of 80
+
+Format your response with the following structured sections:
+### The Discipleship Calling
+(What foundational principle of following Jesus is being addressed in this chapter?)
+
+### Key Insights from Jesus' Commandment
+(Explain the heart of what Jesus taught on this topic, highlighting the difference between external religion and inward life)
+
+### Concrete Daily Application
+(3 practical, real-world ways to live out this truth at home, in speech, and in attitude today)
+
+### Prayer for Obedience
+(A sincere, humble prayer asking the Holy Spirit for grace to be a doer of this word, not a hearer only)`;
+
+  } else if (type === 'briefing') {
+    const bRef = document.getElementById('bRef') ? document.getElementById('bRef').textContent : '';
+    const bVerse = document.getElementById('bVerse') ? document.getElementById('bVerse').textContent : '';
+    const chTitle = chapters[curCh - 1] || '';
+    const vidTitle = window.currentVideoData?.title || 'Daily Video Devotion';
+    const wftwTitle = document.querySelector('#wftwBody .card-title')?.textContent || '';
+
+    currentAiContext = { type: 'briefing', title: 'Daily Morning Briefing' };
+
+    badgeEl.textContent = 'Morning Briefing';
+    badgeEl.style.background = 'var(--brown-light)';
+    badgeEl.style.color = 'var(--brown)';
+    titleEl.textContent = 'Daily Spiritual Synthesis';
+
+    bannerHtml = `
+      <div class="ai-context-banner">
+        <strong>Daily Morning Briefing</strong>
+        Synthesizing today's devotion video, Bible reading, and book study into a unified focus.
+      </div>
+    `;
+
+    chips = [
+      'Summarize in one sentence',
+      'Give me a verse to memorize today',
+      'How can I encourage someone else today?'
+    ];
+
+    prompt = `You are providing a morning spiritual briefing for a disciple starting their day. Synthesize the following elements into a single cohesive morning devotion:
+- Daily Video Devotion: "${vidTitle}"
+- Bible Reading: ${bRef} ("${bVerse}")
+- Book Study: "All That Jesus Taught" - Chapter ${curCh}: "${chTitle}"
+${wftwTitle ? '- Word for the Week: "' + wftwTitle + '"' : ''}
+
+Format your response with the following structured sections:
+### Today's Unifying Theme
+(A powerful headline and short paragraph discovering the golden thread connecting these readings together)
+
+### How the Pieces Connect
+(A concise, inspiring breakdown of how the scripture reading, Jesus' command, and devotional thought reinforce one another)
+
+### Three Anchors for Today
+(3 concrete spiritual anchors: 1 for Mindset, 1 for Speech/Action, 1 for Secret Life before God)
+
+### Morning Dedication Prayer
+(A short, inspiring morning prayer surrendering the day to God's will)`;
+
+  } else if (type === 'schedule') {
+    currentAiContext = { type: 'schedule', title: 'Spiritual Routine & Schedule' };
+    badgeEl.textContent = 'Weekly Schedule';
+    badgeEl.style.background = 'var(--blue-light)';
+    badgeEl.style.color = 'var(--blue)';
+    titleEl.textContent = 'Personal Devotional Blueprint';
+
+    bannerHtml = `
+      <div class="ai-context-banner" style="border-left-color:var(--blue)">
+        <strong>Spiritual Habit Blueprint</strong>
+        Optimizing your daily rhythm across Bible reading, book study, and devotionals.
+      </div>
+    `;
+
+    chips = [
+      'Adjust for a busy 15-minute routine',
+      'How to add evening reflection',
+      'Weekend deep-dive schedule'
+    ];
+
+    prompt = `Create a peaceful, sustainable weekly spiritual rhythm for someone using this hub (which contains: Daily Video Devotion ~10 mins, Chronological Bible Reading 2 chapters/day ~15 mins, "All That Jesus Taught" book ~3 chapters/week, and Word for the Week).
+Include:
+### Recommended Daily Flow (Morning / Midday / Evening)
+### Weekly Pacing (Mon–Sun rhythm)
+### Habit Tip for Consistency`;
+  }
+
+  // Render loading state
+  bodyEl.innerHTML = `
+    ${bannerHtml}
+    <div class="state-msg" style="padding:40px 0">
+      <i class="ti ti-sparkles spin" style="font-size:28px;color:var(--brown)"></i>
+      <span style="font-weight:500;color:var(--brown)">Preparing your devotional reflection...</span>
+      <small style="color:var(--text3)">Consulting Gemini Flash</small>
+    </div>
+  `;
+
+  try {
+    const aiResponse = await callGeminiApi(prompt, sysInstruction);
+    currentAiDevotionalRaw = aiResponse;
+
+    const renderedContent = renderMarkdown(aiResponse);
+
+    bodyEl.innerHTML = `
+      ${bannerHtml}
+      <div class="ai-content" id="aiMainDevotional">
+        ${renderedContent}
+      </div>
+
+      <div style="margin-top:10px">
+        <div style="font-size:11px;font-weight:600;text-transform:uppercase;letter-spacing:0.5px;color:var(--text3);margin-bottom:4px">
+          Explore Deeper
+        </div>
+        <div class="ai-chips">
+          ${chips.map(c => `<button class="ai-chip" onclick="sendAiFollowup('${c.replace(/'/g, "\\'")}')"><i class="ti ti-arrow-up-right"></i> ${c}</button>`).join('')}
+        </div>
+      </div>
+
+      <div class="ai-chat-thread" id="aiChatThread"></div>
+    `;
+
+    inputBar.style.display = 'flex';
+    const queryInput = document.getElementById('aiQueryInput');
+    if (queryInput) queryInput.focus();
+
+  } catch (err) {
+    console.error('Gemini error:', err);
+    let errMsg = err.message || 'Error communicating with Gemini.';
+
+    bodyEl.innerHTML = `
+      ${bannerHtml}
+      <div class="state-msg err-msg">
+        <i class="ti ti-alert-circle" style="font-size:32px"></i>
+        <strong>Could not generate reflection</strong>
+        <p style="max-width:400px;margin-top:4px">${errMsg}</p>
+        <div style="display:flex;gap:8px;margin-top:12px">
+          <button class="pill-action" onclick="startAiReflection('${type}')">
+            <i class="ti ti-refresh"></i> Try Again
+          </button>
+          <button class="pill-action" onclick="openAiSettings()">
+            <i class="ti ti-key"></i> Check API Key
+          </button>
+        </div>
+      </div>
+    `;
+  }
+}
+
+async function sendAiFollowup(customPrompt) {
+  const inputEl = document.getElementById('aiQueryInput');
+  const threadEl = document.getElementById('aiChatThread');
+  const sendBtn = document.getElementById('aiSendBtn');
+
+  const question = customPrompt || (inputEl ? inputEl.value.trim() : '');
+  if (!question) return;
+
+  if (inputEl) inputEl.value = '';
+
+  // Append user message
+  const userMsgEl = document.createElement('div');
+  userMsgEl.className = 'ai-msg user';
+  userMsgEl.textContent = question;
+  threadEl.appendChild(userMsgEl);
+
+  // Append placeholder assistant message
+  const assistantMsgEl = document.createElement('div');
+  assistantMsgEl.className = 'ai-msg assistant';
+  assistantMsgEl.innerHTML = '<i class="ti ti-loader spin"></i> <em>Reflecting...</em>';
+  threadEl.appendChild(assistantMsgEl);
+
+  // Scroll to bottom
+  userMsgEl.scrollIntoView({ behavior: 'smooth' });
+
+  if (sendBtn) sendBtn.disabled = true;
+
+  try {
+    const fullPrompt = `The user is studying: ${JSON.stringify(currentAiContext)}
+Initial Devotional generated:
+${currentAiDevotionalRaw.slice(0, 1000)}
+
+Follow-up question from the user:
+"${question}"
+
+Please provide a thoughtful, spiritually biblical, encouraging, and direct answer in 2-3 short paragraphs or bullet points.`;
+
+    const reply = await callGeminiApi(fullPrompt);
+    assistantMsgEl.innerHTML = renderMarkdown(reply);
+    assistantMsgEl.scrollIntoView({ behavior: 'smooth' });
+  } catch (e) {
+    assistantMsgEl.innerHTML = `<span style="color:var(--red)"><i class="ti ti-alert-circle"></i> ${e.message || 'Error generating response'}</span>`;
+  } finally {
+    if (sendBtn) sendBtn.disabled = false;
+  }
+}
+
+// ---- HOOK UP ACTION BUTTONS ----
+function reflectBible() {
+  startAiReflection('bible');
+}
+
+function reflectChapter() {
+  startAiReflection('chapter');
+}
+
+function briefing() {
+  startAiReflection('briefing');
+}
+
+function openSchedule() {
+  startAiReflection('schedule');
+}
 
 // ---- PWA SERVICE WORKER ----
 if ('serviceWorker' in navigator) {
