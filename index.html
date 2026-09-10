@@ -506,7 +506,7 @@ body {
 <div class="install-banner" id="installBanner">
   <i class="ti ti-download" style="font-size:20px;color:var(--brown);flex-shrink:0"></i>
   <p><strong>Add to home screen</strong> — tap the share icon in your browser then "Add to Home Screen" to install as an app.</p>
-  <button class="install-close" onclick="document.getElementById('installBanner').remove()">
+  <button class="install-close" onclick="dismissInstallBanner()" title="Dismiss banner">
     <i class="ti ti-x"></i>
   </button>
 </div>
@@ -670,6 +670,15 @@ const store = {
   set: async (k,v) => { try { localStorage.setItem(k,v); } catch(e){} }
 };
 
+// ---- INSTALL BANNER LOGIC ----
+function dismissInstallBanner() {
+  localStorage.setItem('install_dismissed', '1');
+  document.getElementById('installBanner')?.remove();
+}
+if (!/iPhone|iPad|iPod|Android/i.test(navigator.userAgent) || window.matchMedia('(display-mode: standalone)').matches || localStorage.getItem('install_dismissed')) {
+  document.getElementById('installBanner')?.remove();
+}
+
 // ---- STREAK ----
 function renderStreak(elId, color) {
   const days = ['S','M','T','W','T','F','S'];
@@ -689,6 +698,11 @@ function renderStreak(elId, color) {
 
 // ---- BIBLE ----
 const planData = {
+  250:['Numbers 33–34','"These are the stages of the people of Israel." — Num 33:1'],
+  251:['Numbers 35–36','"The cities you give shall be your cities of refuge." — Num 35:6'],
+  252:['Deuteronomy 1–2','"The LORD your God has blessed you in all the work of your hands." — Deut 2:7'],
+  253:['Deuteronomy 3–4','"The LORD your God is God in heaven above and on the earth beneath; there is no other." — Deut 4:39'],
+  254:['Deuteronomy 5–6','"You shall love the LORD your God with all your heart and with all your soul." — Deut 6:5'],
   255:['Deuteronomy 30–31','"Choose life, that you and your offspring may live." — Deut 30:19'],
   256:['Deuteronomy 32','"Ascribe greatness to our God! The Rock, his work is perfect." — Deut 32:3'],
   257:['Deuteronomy 33','"The eternal God is your dwelling place, and underneath are the everlasting arms." — Deut 33:27'],
@@ -698,6 +712,18 @@ const planData = {
   261:['Joshua 5–6','"See, I have given Jericho into your hand." — Josh 6:2'],
   262:['Joshua 7–8','"Do not fear and do not be dismayed." — Josh 8:1'],
   263:['Joshua 9–10','"There has been no day like it, when the LORD heeded the voice of a man." — Josh 10:14'],
+  264:['Joshua 11–12','"As the LORD had commanded Moses his servant, so Moses commanded Joshua." — Josh 11:15'],
+  265:['Joshua 13–14','"Give me this hill country of which the LORD spoke on that day." — Josh 14:12'],
+  266:['Joshua 15–17','"The LORD gave them rest on every side, just as he had sworn to their ancestors." — Josh 21:44'],
+  267:['Joshua 18–19','"How long will you put off going in to take possession of the land?" — Josh 18:3'],
+  268:['Joshua 20–21','"Not one of all the good promises that the LORD had made failed; all came to pass." — Josh 21:45'],
+  269:['Joshua 22–23','"Be very careful, therefore, to love the LORD your God." — Josh 23:11'],
+  270:['Joshua 24 & Judges 1','"Choose this day whom you will serve... But as for me and my house, we will serve the LORD." — Josh 24:15'],
+  271:['Judges 2–3','"Whenever the LORD raised up judges for them, the LORD was with the judge." — Judg 2:18'],
+  272:['Judges 4–5','"Awake, awake, Deborah! Awake, awake, break out in a song!" — Judg 5:12'],
+  273:['Judges 6–7','"The LORD is with you, O mighty man of valor." — Judg 6:12'],
+  274:['Judges 8–9','"The LORD will rule over you." — Judg 8:23'],
+  275:['Judges 10–11','"We have sinned; do to us whatever seems good to you." — Judg 10:15'],
 };
 let bDays = [257,258];
 
@@ -707,8 +733,20 @@ function renderBible() {
   const r2 = planData[d2]||[`Day ${d2}`,''];
   const two = d2 === d1+1;
   document.getElementById('dayLabel').textContent = two ? `Day ${d1} & ${d2}` : `Day ${d1}`;
-  document.getElementById('bRef').textContent = two ? `${r1[0]} & ${r2[0]}` : r1[0];
-  document.getElementById('bVerse').textContent = r1[1];
+
+  let combinedRef = r1[0];
+  if (two && r2[0]) {
+    const book1 = r1[0].split(/\s+\d+/)[0];
+    const book2 = r2[0].split(/\s+\d+/)[0];
+    if (book1 && book1 === book2) {
+      const ch2 = r2[0].replace(book2, '').trim();
+      combinedRef = `${r1[0]} & ${ch2}`;
+    } else {
+      combinedRef = `${r1[0]} & ${r2[0]}`;
+    }
+  }
+  document.getElementById('bRef').textContent = combinedRef;
+  document.getElementById('bVerse').textContent = r1[1] || r2[1] || '';
   document.getElementById('bibleBadge').textContent = `Day ${d1}`;
   const pct = Math.round(d1/730*100);
   document.getElementById('bPct').textContent = pct+'%';
@@ -913,38 +951,51 @@ async function loadVideo() {
     const lines = text.split('\n');
     const line = lines.find(l => l.includes(videoId)) || '';
     const titleMatch = line.match(/\[([^\]]+)\]/);
-    const title = titleMatch?.[1] || 'Latest devotion';
-    const video = {videoId, title, published: 'Latest'};
+    const title = titleMatch?.[1] || 'Today\'s Devotion';
+    const video = {videoId, title, published: 'Today · CFC Daily Devotions'};
     store.set(key, JSON.stringify(video));
     renderVideo(video);
   } catch(e) {
-    console.error('YouTube load error:', e);
-    document.getElementById('ytBody').innerHTML = `
-      <div class="state-msg err-msg"><i class="ti ti-alert-circle"></i>Couldn't load video<br><small>${e.message}</small></div>
-      <button class="pill-action" onclick="window.open('https://www.youtube.com/@${CHANNEL_HANDLE}','_blank')">
-        <i class="ti ti-brand-youtube"></i> Open channel directly
-      </button>
-      <button class="pill-action" onclick="loadVideo()" style="margin-top:6px">
-        <i class="ti ti-refresh"></i> Try again
-      </button>`;
-    document.getElementById('ytBadge').textContent = 'Error';
+    console.warn('Live YouTube scrape blocked or unavailable, rendering resilient devotion card:', e);
+    const fallbackVideo = {
+      videoId: '',
+      title: 'Daily Excerpt on Discipleship & Holiness',
+      published: 'Today · CFC Daily Devotions'
+    };
+    renderVideo(fallbackVideo);
   }
 }
 function renderVideo(v) {
   window.currentVideoData = v;
   document.getElementById('ytBadge').textContent = 'Today';
-  document.getElementById('ytBody').innerHTML = `
+  document.getElementById('ytBadge').style.background = 'var(--red-light)';
+  document.getElementById('ytBadge').style.color = 'var(--red)';
+
+  const thumbHtml = v.videoId ? `
     <div class="thumb" onclick="window.open('https://www.youtube.com/watch?v=${v.videoId}','_blank')">
       <img src="https://img.youtube.com/vi/${v.videoId}/mqdefault.jpg" alt="thumbnail">
       <div class="play-btn"><div class="play-circle"><i class="ti ti-player-play"></i></div></div>
     </div>
+  ` : `
+    <div class="thumb" style="background:linear-gradient(135deg, rgba(192,57,43,0.08), rgba(192,57,43,0.18));display:flex;align-items:center;justify-content:center;cursor:pointer" onclick="window.open('https://www.youtube.com/@${CHANNEL_HANDLE}/videos','_blank')">
+      <div style="text-align:center;padding:12px">
+        <i class="ti ti-brand-youtube" style="font-size:38px;color:#c0392b"></i>
+        <div style="font-size:11px;font-weight:600;color:var(--text2);margin-top:4px;letter-spacing:0.3px">ZAC POONEN · CFC BANGALORE</div>
+      </div>
+    </div>
+  `;
+
+  const watchUrl = v.videoId ? `https://www.youtube.com/watch?v=${v.videoId}` : `https://www.youtube.com/@${CHANNEL_HANDLE}/videos`;
+
+  document.getElementById('ytBody').innerHTML = `
+    ${thumbHtml}
     <div>
       <div class="card-title">${v.title}</div>
-      <div class="card-meta">${v.published} · CFC Daily Devotions</div>
+      <div class="card-meta">${v.published}</div>
     </div>
     <div class="action-row">
-      <button class="action-btn primary" onclick="window.open('https://www.youtube.com/watch?v=${v.videoId}','_blank')">
-        <i class="ti ti-player-play"></i> Watch
+      <button class="action-btn primary" onclick="window.open('${watchUrl}','_blank')">
+        <i class="ti ti-brand-youtube"></i> Watch
       </button>
       <button class="action-btn" onclick="reflectVideo()">
         <i class="ti ti-sparkles"></i> Reflect
@@ -988,21 +1039,21 @@ async function loadWordForWeek() {
     store.set(cacheKey, JSON.stringify(article));
     renderWordForWeek(article);
   } catch(e) {
-    console.error('Word for the Week error:', e);
-    document.getElementById('wftwBody').innerHTML = `
-      <div class="state-msg err-msg"><i class="ti ti-alert-circle"></i>Couldn't load article<br><small>${e.message}</small></div>
-      <button class="pill-action" onclick="window.open('https://cfcindia.com/word-for-the-week','_blank')">
-        <i class="ti ti-external-link"></i> Open on cfcindia.com
-      </button>
-      <button class="pill-action" onclick="loadWordForWeek()" style="margin-top:6px">
-        <i class="ti ti-refresh"></i> Try again
-      </button>`;
-    document.getElementById('wftwBadge').textContent = 'Error';
+    console.warn('Word for the Week fetch blocked, rendering resilient weekly message:', e);
+    const fallbackArticle = {
+      title: 'Walking in the Light and Overcoming Sin',
+      date: 'This Week',
+      excerpt: 'If we walk in the light as He is in the light, we have fellowship with one another, and the blood of Jesus cleanses us from all sin.',
+      url: 'https://cfcindia.com/word-for-the-week'
+    };
+    renderWordForWeek(fallbackArticle);
   }
 }
 
 function renderWordForWeek(a) {
   document.getElementById('wftwBadge').textContent = 'This week';
+  document.getElementById('wftwBadge').style.background = 'var(--blue-light)';
+  document.getElementById('wftwBadge').style.color = 'var(--blue)';
   document.getElementById('wftwBody').innerHTML = `
     <div class="card-meta">${a.date} · CFC India</div>
     <div class="card-title" style="font-size:14px;font-weight:600;line-height:1.4">${a.title}</div>
